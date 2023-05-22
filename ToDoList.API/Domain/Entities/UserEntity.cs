@@ -6,6 +6,7 @@ namespace ToDoList.API.Domain.Entities;
 
 public class UserEntity
 {
+    [Key]
     public int Id { get; set; }
 
     [Required]

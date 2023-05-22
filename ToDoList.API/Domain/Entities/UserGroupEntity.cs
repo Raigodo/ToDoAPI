@@ -1,9 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics.CodeAnalysis;
 
 namespace ToDoList.API.Domain.Entities;
 
-public class GroupEntity
+public class UserGroupEntity
 {
     [Key]
     public int Id { get; set; }
