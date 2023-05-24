@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization;
+using System.Text.Json;
 using ToDoList.API.DAL;
 using ToDoList.API.Domain.Dto;
 using ToDoList.API.Domain.Entities;
@@ -22,10 +24,12 @@ public class UsersController : ControllerBase
     [Route("Get")]
     public async Task<IActionResult> Get(int id)
     {
-        var user = await _dbCtx.Users.FirstOrDefaultAsync(u => u.Id == id);
+        var user = await _dbCtx.Users
+            .Include(u=>u.MemberingGroups)
+            .FirstOrDefaultAsync(u => u.Id == id);
         if (user == null)
             return BadRequest("Invalid Id");
-        
+
         return Ok(user);
     }
 

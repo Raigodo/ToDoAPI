@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json.Serialization;
 
 namespace ToDoList.API.Domain.Entities;
 
@@ -17,5 +18,5 @@ public class UserGroupEntity
 
 
     public ICollection<TaskBoxEntity> AcessibleBoxes { get; set; } = new List<TaskBoxEntity>();
-    public ICollection<GroupsUsersEntity> MembersInGroup { get; set; } = new List<GroupsUsersEntity>();
+    public ICollection<GroupMemberEntity> MembersInGroup { get; set; } = new List<GroupMemberEntity>();
 }

@@ -65,7 +65,7 @@ namespace ToDoList.API.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "GroupUsers",
+                name: "GroupsUsers",
                 columns: table => new
                 {
                     UserId = table.Column<int>(type: "integer", nullable: false),
@@ -73,15 +73,15 @@ namespace ToDoList.API.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_GroupUsers", x => new { x.UserId, x.GroupId });
+                    table.PrimaryKey("PK_GroupsUsers", x => new { x.UserId, x.GroupId });
                     table.ForeignKey(
-                        name: "FK_GroupUsers_Groups_GroupId",
+                        name: "FK_GroupsUsers_Groups_GroupId",
                         column: x => x.GroupId,
                         principalTable: "Groups",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_GroupUsers_Users_UserId",
+                        name: "FK_GroupsUsers_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "Id",
@@ -110,8 +110,8 @@ namespace ToDoList.API.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_GroupUsers_GroupId",
-                table: "GroupUsers",
+                name: "IX_GroupsUsers_GroupId",
+                table: "GroupsUsers",
                 column: "GroupId");
 
             migrationBuilder.CreateIndex(
@@ -134,7 +134,7 @@ namespace ToDoList.API.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "GroupUsers");
+                name: "GroupsUsers");
 
             migrationBuilder.DropTable(
                 name: "ToDoTasks");

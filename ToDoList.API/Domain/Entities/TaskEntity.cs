@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json.Serialization;
 
 namespace ToDoList.API.Domain.Entities;
 
@@ -18,5 +19,6 @@ public class TaskEntity
     public string Description { get; set; } = string.Empty;
 
 
+    [JsonIgnore]
     public TaskBoxEntity ParrentBox { get; set; }
 }

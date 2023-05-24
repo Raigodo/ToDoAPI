@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization;
+using System.Text.Json;
 using ToDoList.API.DAL;
 using ToDoList.API.Domain.Dto;
 using ToDoList.API.Domain.Entities;
@@ -22,11 +24,11 @@ public class TasksController : ControllerBase
     [Route("Get")]
     public async Task<IActionResult> Get(int id)
     {
-        var task = await _dbCtx.ToDoTasks.FirstOrDefaultAsync(t=>t.Id==id);
+        var task = await _dbCtx.ToDoTasks
+            .FirstOrDefaultAsync(t=>t.Id==id);
 
         if (task == null)
             return BadRequest("Invalid Id");
-        
 
         return Ok(task);
     }
@@ -49,16 +51,15 @@ public class TasksController : ControllerBase
 
     [HttpPatch]
     [Route("Update")]
-    public async Task<IActionResult> Update(int id, TaskEntity entity)
+    public async Task<IActionResult> Update(int id, TaskDto entityDto)
     {
         var task = await _dbCtx.ToDoTasks.FirstOrDefaultAsync(t=>t.Id == id);
         if (task == null)
             return BadRequest();
 
-        task.Id = entity.Id;
-        task.ParrentBoxId = entity.ParrentBoxId;
-        task.Title = entity.Title;
-        task.Description = entity.Description;
+        task.ParrentBoxId = entityDto.ParrentBoxId;
+        task.Title = entityDto.Title;
+        task.Description = entityDto.Description;
 
         await _dbCtx.SaveChangesAsync();
         return NoContent();

@@ -8,15 +8,16 @@ public class AppDbContext : DbContext
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {
-        
+        //Database.EnsureDeleted();
+        //Database.EnsureCreated();
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        var groupUsers = modelBuilder.Entity<GroupsUsersEntity>();
+        var groupUsers = modelBuilder.Entity<GroupMemberEntity>();
 
         groupUsers.HasKey(gu => new { gu.UserId, gu.GroupId });
-        groupUsers.HasOne(gu => gu.User).WithMany(u => u.MemberInGroups);
+        groupUsers.HasOne(gu => gu.User).WithMany(u => u.MemberingGroups);
         groupUsers.HasOne(gu => gu.Group).WithMany(g => g.MembersInGroup);
 
 
@@ -38,5 +39,5 @@ public class AppDbContext : DbContext
     public DbSet<TaskBoxEntity> TaskBoxes { get; set; }
     public DbSet<UserGroupEntity> Groups { get; set; }
     public DbSet<UserEntity> Users { get; set; }
-    public DbSet<GroupsUsersEntity> GroupUsers { get; set; }
+    public DbSet<GroupMemberEntity> GroupsUsers { get; set; }
 }

@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization;
+using System.Text.Json;
 using ToDoList.API.DAL;
 using ToDoList.API.Domain.Dto;
 using ToDoList.API.Domain.Entities;
@@ -19,10 +21,14 @@ public class TaskBoxesController : ControllerBase
     }
 
     [HttpGet]
-    [Route("GetAll")]
-    public async Task<IActionResult> GetAll()
+    [Route("GetRoot")]
+    public async Task<IActionResult> GetRoot(int ownerGroupId)
     {
-        var rootBoxes = await _dbCtx.TaskBoxes.ToListAsync();
+        var rootBoxes = await _dbCtx.TaskBoxes
+            .Include(b => b.Tasks)
+            .Include(b => b.SubFolders)
+            .Where(b=>b.AssociatedGroupId == ownerGroupId && b.ParrentBoxId == null)
+            .ToListAsync();
         return Ok(rootBoxes);
     }
 
@@ -30,9 +36,13 @@ public class TaskBoxesController : ControllerBase
     [Route("Get")]
     public async Task<IActionResult> Get(int id)
     {
-        var box = await _dbCtx.TaskBoxes.FirstOrDefaultAsync(b => b.Id == id);
+        var box = await _dbCtx.TaskBoxes
+            .Include(b => b.Tasks)
+            .Include(b => b.SubFolders)
+            .ToListAsync();
         if (box == null)
             return BadRequest("Invalid Id");
+
 
         return Ok(box);
     }
@@ -56,16 +66,15 @@ public class TaskBoxesController : ControllerBase
 
     [HttpPatch]
     [Route("Update")]
-    public async Task<IActionResult> Update(int id, TaskBoxEntity entity)
+    public async Task<IActionResult> Update(int id, TaskBoxDto entityDto)
     {
         var box = await _dbCtx.TaskBoxes.FirstOrDefaultAsync(b => b.Id == id);
         if (box == null)
             return BadRequest();
 
-        box.Id = entity.Id;
-        box.Title = entity.Title;
-        box.AssociatedGroupId = entity.AssociatedGroupId; 
-        box.ParrentBoxId = entity.ParrentBoxId;
+        box.Title = entityDto.Title;
+        box.AssociatedGroupId = entityDto.AssociatedGroupId; 
+        box.ParrentBoxId = entityDto.ParrentBoxId;
 
         await _dbCtx.SaveChangesAsync();
         return NoContent();

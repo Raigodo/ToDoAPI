@@ -12,7 +12,7 @@ using ToDoList.API.DAL;
 namespace ToDoList.API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20230522175756_InitialCreate")]
+    [Migration("20230523151108_Initial Create")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -37,7 +37,7 @@ namespace ToDoList.API.Migrations
 
                     b.HasIndex("GroupId");
 
-                    b.ToTable("GroupUsers");
+                    b.ToTable("GroupsUsers");
                 });
 
             modelBuilder.Entity("ToDoList.API.Domain.Entities.TaskBoxEntity", b =>

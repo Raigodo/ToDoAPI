@@ -34,7 +34,7 @@ namespace ToDoList.API.Migrations
 
                     b.HasIndex("GroupId");
 
-                    b.ToTable("GroupUsers");
+                    b.ToTable("GroupsUsers");
                 });
 
             modelBuilder.Entity("ToDoList.API.Domain.Entities.TaskBoxEntity", b =>

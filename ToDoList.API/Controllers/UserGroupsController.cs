@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization;
+using System.Text.Json;
 using ToDoList.API.DAL;
 using ToDoList.API.Domain.Dto;
 using ToDoList.API.Domain.Entities;
@@ -8,11 +10,11 @@ namespace ToDoList.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class UserGroupsController : ControllerBase
+public class GroupsController : ControllerBase
 {
     private AppDbContext _dbCtx;
 
-    public UserGroupsController(AppDbContext appDbContext)
+    public GroupsController(AppDbContext appDbContext)
     {
         _dbCtx = appDbContext;
     }
@@ -22,9 +24,13 @@ public class UserGroupsController : ControllerBase
     [Route("Get")]
     public async Task<IActionResult> Get(int id)
     {
-        var group = await _dbCtx.Groups.FirstOrDefaultAsync(g => g.Id == id);
+        var group = await _dbCtx.Groups
+            .Include(u => u.MembersInGroup)
+            .Include(u => u.AcessibleBoxes)
+            .FirstOrDefaultAsync(g => g.Id == id);
         if (group == null)
             return BadRequest("Invalid Id");
+
 
         return Ok(group);
     }
@@ -47,15 +53,14 @@ public class UserGroupsController : ControllerBase
 
     [HttpPatch]
     [Route("Update")]
-    public async Task<IActionResult> Update(int id, UserGroupEntity entity)
+    public async Task<IActionResult> Update(int id, UserGroupDto entityDto)
     {
         var group = await _dbCtx.Groups.FirstOrDefaultAsync(g => g.Id == id);
         if (group == null)
             return BadRequest();
 
-        group.Id = entity.Id;
-        group.Title = entity.Title;
-        group.Description = entity.Description;
+        group.Title = entityDto.Title;
+        group.Description = entityDto.Description;
 
         await _dbCtx.SaveChangesAsync();
         return NoContent();

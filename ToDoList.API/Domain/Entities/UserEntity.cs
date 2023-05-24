@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json.Serialization;
 
 namespace ToDoList.API.Domain.Entities;
 
@@ -12,5 +13,5 @@ public class UserEntity
     [Required]
     public string Nickname { get; set; } = "User";
 
-    public ICollection<GroupsUsersEntity> MemberInGroups { get; set; } = new List<GroupsUsersEntity>();
+    public ICollection<GroupMemberEntity> MemberingGroups { get; set; } = new List<GroupMemberEntity>();
 }
