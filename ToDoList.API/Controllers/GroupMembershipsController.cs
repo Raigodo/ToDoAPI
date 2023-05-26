@@ -1,13 +1,15 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Text.Json.Serialization;
-using System.Text.Json;
 using ToDoList.API.DAL;
 using ToDoList.API.Domain.Dto;
 using ToDoList.API.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using System.Text.RegularExpressions;
+using ToDoList.API.Services.Check;
 
 namespace ToDoList.API.Controllers;
+
 
 [ApiController]
 [Authorize]
@@ -15,10 +17,20 @@ namespace ToDoList.API.Controllers;
 public class GroupMembershipController : ControllerBase
 {
     private ApiDbContext _dbCtx;
+    private UserManager<IdentityUser> _userManager;
+    private IAcessGuardService _acessCheck;
+    private ICheckExistingRecordService _existCheck;
 
-    public GroupMembershipController(ApiDbContext appDbContext)
+    public GroupMembershipController(
+        ApiDbContext appDbContext,
+        UserManager<IdentityUser> userManager,
+        IAcessGuardService acessCheck,
+        ICheckExistingRecordService existCheck)
     {
         _dbCtx = appDbContext;
+        _userManager = userManager;
+        _acessCheck = acessCheck;
+        _existCheck = existCheck;
     }
 
 
@@ -26,10 +38,12 @@ public class GroupMembershipController : ControllerBase
     [Route("GetMembers")]
     public async Task<IActionResult> GetMembers(int groupId)
     {
-        var doesGroupExists = await _dbCtx.ApiGroups
-            .AnyAsync(g => g.Id == groupId);
-        if (!doesGroupExists)
+        if (!(await _existCheck.DoesGroupExistAsync(groupId)))
             return BadRequest("Invalid Id");
+
+        if (!(await _acessCheck.IsGroupAcessibleAsync(groupId)))
+            return Unauthorized("Acess denied");
+
 
         var memberList = await _dbCtx.ApiGroupsUsers
             .Where(gu => gu.GroupId == groupId)
@@ -42,14 +56,14 @@ public class GroupMembershipController : ControllerBase
     [Route("AddMember")]
     public async Task<IActionResult> AddMember(GroupMemberDto entityDto)
     {
-        var doesUserExists = await _dbCtx.ApiUsers.AnyAsync(u=>u.Id == entityDto.UserId);
-        var doesGroupExists = await _dbCtx.ApiGroups.AnyAsync(g => g.Id == entityDto.GroupId);
-        var doesMemberAlreadyExists = await _dbCtx.ApiGroupsUsers.AnyAsync(m => m.GroupId == entityDto.GroupId && m.UserId == entityDto.UserId);
-
-        if (!doesGroupExists || !doesUserExists || doesMemberAlreadyExists)
+        if (!(await _existCheck.DoesGroupMemberExistAsync(userId: entityDto.UserId, groupId: entityDto.GroupId)))
             return BadRequest("Invalid Id");
 
-        var member = new GroupMemberEntity()
+        if (!(await _acessCheck.IsGroupMemberAcessibleAsync(userId: entityDto.UserId, groupId: entityDto.GroupId)))
+            return Unauthorized("Acess denied");
+
+
+        var member = new GroupsUsersEntity()
         {
             UserId = entityDto.UserId,
             GroupId = entityDto.GroupId,
@@ -64,9 +78,14 @@ public class GroupMembershipController : ControllerBase
     [Route("Update")]
     public async Task<IActionResult> Update(GroupMemberDto entityDto)//currently useless
     {
-        var groupUser = await _dbCtx.ApiGroupsUsers.FirstOrDefaultAsync(g => g.UserId == entityDto.UserId && g.GroupId == entityDto.GroupId);
-        if (groupUser == null)
+        if (!(await _existCheck.DoesGroupMemberExistAsync(userId: entityDto.UserId, groupId: entityDto.GroupId)))
             return BadRequest("Invalid Id");
+
+        if (!(await _acessCheck.IsGroupMemberAcessibleAsync(userId: entityDto.UserId, groupId: entityDto.GroupId)))
+            return Unauthorized("Acess denied");
+
+
+        var groupUser = await _dbCtx.ApiGroupsUsers.FirstOrDefaultAsync(g => g.UserId == entityDto.UserId && g.GroupId == entityDto.GroupId);
 
         groupUser.GroupId = entityDto.GroupId;
         groupUser.UserId = entityDto.UserId;
@@ -78,11 +97,16 @@ public class GroupMembershipController : ControllerBase
 
     [HttpDelete]
     [Route("Delete")]
-    public async Task<IActionResult> Delete(int userId, int groupId)
+    public async Task<IActionResult> Delete(string userId, int groupId)
     {
-        var groupUser = _dbCtx.ApiGroupsUsers.FirstOrDefault(gu => gu.UserId == userId && gu.GroupId == groupId);
-        if (groupUser == null)
+        if (!(await _existCheck.DoesGroupMemberExistAsync(userId: userId, groupId: groupId)))
             return BadRequest("Invalid Id");
+
+        if (!(await _acessCheck.IsGroupMemberAcessibleAsync(userId: userId, groupId: groupId)))
+            return Unauthorized("Acess denied");
+
+
+        var groupUser = _dbCtx.ApiGroupsUsers.FirstOrDefault(gu => gu.UserId == userId && gu.GroupId == groupId);
 
         _dbCtx.ApiGroupsUsers.Remove(groupUser);
         await _dbCtx.SaveChangesAsync();

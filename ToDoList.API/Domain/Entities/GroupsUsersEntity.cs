@@ -5,14 +5,14 @@ using System.Text.Json.Serialization;
 
 namespace ToDoList.API.Domain.Entities;
 
-public class GroupMemberEntity
+public class GroupsUsersEntity
 {
     //described in db context
-    public int UserId { get; set; }
+    public string UserId { get; set; }
     public int GroupId { get; set; }
 
     [JsonIgnore]
     public UserEntity User { get; set; }
     [JsonIgnore]
-    public UserGroupEntity Group { get; set; }
+    public GroupEntity Group { get; set; }
 }

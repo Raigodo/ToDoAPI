@@ -5,7 +5,7 @@ using ToDoList.API.Domain.Entities;
 
 namespace ToDoList.API.DAL;
 
-public class ApiDbContext : IdentityDbContext
+public class ApiDbContext : IdentityDbContext<UserEntity>
 {
     public ApiDbContext(DbContextOptions<ApiDbContext> options) : base(options)
     {
@@ -15,17 +15,17 @@ public class ApiDbContext : IdentityDbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-        var groupUsers = modelBuilder.Entity<GroupMemberEntity>();
+        var groupUsers = modelBuilder.Entity<GroupsUsersEntity>();
 
         groupUsers.HasKey(gu => new { gu.UserId, gu.GroupId });
-        groupUsers.HasOne(gu => gu.User).WithMany(u => u.MemberingGroups);
+        groupUsers.HasOne(gu => gu.User).WithMany(u => u.GroupMemberships);
         groupUsers.HasOne(gu => gu.Group).WithMany(g => g.MembersInGroup);
 
 
         modelBuilder.Entity<UserEntity>()
             .Property(u => u.Id)
             .ValueGeneratedOnAdd();
-        modelBuilder.Entity<UserGroupEntity>()
+        modelBuilder.Entity<GroupEntity>()
             .Property(g => g.Id)
             .ValueGeneratedOnAdd();
         modelBuilder.Entity<TaskBoxEntity>()
@@ -36,9 +36,9 @@ public class ApiDbContext : IdentityDbContext
             .ValueGeneratedOnAdd();
     }
 
+    public DbSet<UserEntity> Users { get; set; }
     public DbSet<TaskEntity> ApiTasks { get; set; }
     public DbSet<TaskBoxEntity> ApiTaskBoxes { get; set; }
-    public DbSet<UserGroupEntity> ApiGroups { get; set; }
-    public DbSet<UserEntity> ApiUsers { get; set; }
-    public DbSet<GroupMemberEntity> ApiGroupsUsers { get; set; }
+    public DbSet<GroupEntity> ApiGroups { get; set; }
+    public DbSet<GroupsUsersEntity> ApiGroupsUsers { get; set; }
 }

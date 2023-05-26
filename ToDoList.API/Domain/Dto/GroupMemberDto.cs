@@ -7,7 +7,7 @@ namespace ToDoList.API.Domain.Dto
     public class GroupMemberDto
     {
         [Required]
-        public int UserId { get; set; }
+        public string UserId { get; set; }
         [Required]
         public int GroupId { get; set; }
     }

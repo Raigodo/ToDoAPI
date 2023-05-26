@@ -10,11 +10,11 @@ public class TaskBoxEntity
     [Key]
     public int Id { get; set; }
 
-    [ForeignKey(nameof(UserGroupEntity))]
+    [ForeignKey(nameof(GroupEntity))]
     [Required]
     public int AssociatedGroupId { get; set; }
 
-    [ForeignKey(nameof(UserGroupEntity))]
+    [ForeignKey(nameof(GroupEntity))]
     public int? ParrentBoxId { get; set; }
 
 
@@ -23,7 +23,7 @@ public class TaskBoxEntity
 
 
     [JsonIgnore]
-    public UserGroupEntity AssociatedGroup { get; set; }
+    public GroupEntity AssociatedGroup { get; set; }
     [JsonIgnore]
     public TaskBoxEntity ParrentBox { get; set; }
     public ICollection<TaskEntity> Tasks { get; set; } = new List<TaskEntity>();

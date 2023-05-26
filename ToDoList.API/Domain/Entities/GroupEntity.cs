@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 
 namespace ToDoList.API.Domain.Entities;
 
-public class UserGroupEntity
+public class GroupEntity
 {
     [Key]
     public int Id { get; set; }
@@ -18,5 +18,5 @@ public class UserGroupEntity
 
 
     public ICollection<TaskBoxEntity> AcessibleBoxes { get; set; } = new List<TaskBoxEntity>();
-    public ICollection<GroupMemberEntity> MembersInGroup { get; set; } = new List<GroupMemberEntity>();
+    public ICollection<GroupsUsersEntity> MembersInGroup { get; set; } = new List<GroupsUsersEntity>();
 }

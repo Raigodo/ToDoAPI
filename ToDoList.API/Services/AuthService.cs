@@ -45,6 +45,7 @@ public class AuthService : IAuthService
     {
         var claims = new List<Claim>
         {
+            new Claim(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString()),
             new Claim(ClaimTypes.Name, loginDto.Username),
             new Claim(ClaimTypes.Role, "Admin")
         };

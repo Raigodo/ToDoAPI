@@ -2,10 +2,12 @@
 using Microsoft.EntityFrameworkCore;
 using ToDoList.API.DAL;
 using ToDoList.API.Domain.Dto;
-using ToDoList.API.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using ToDoList.API.Services.Check;
 
 namespace ToDoList.API.Controllers;
+
 
 [ApiController]
 [Authorize]
@@ -13,47 +15,50 @@ namespace ToDoList.API.Controllers;
 public class UsersController : ControllerBase
 {
     private ApiDbContext _dbCtx;
+    private UserManager<IdentityUser> _userManager;
+    private IAcessGuardService _acessCheck;
+    private ICheckExistingRecordService _existCheck;
 
-    public UsersController(ApiDbContext appDbContext)
+    public UsersController(
+        ApiDbContext appDbContext, 
+        UserManager<IdentityUser> userManager,
+        IAcessGuardService acessCheck,
+        ICheckExistingRecordService existCheck)
     {
         _dbCtx = appDbContext;
+        _userManager = userManager;
+        _acessCheck = acessCheck;
+        _existCheck = existCheck;
     }
 
     
     [HttpGet]
     [Route("Get")]
-    public async Task<IActionResult> Get(int id)
+    public async Task<IActionResult> Get()
     {
-        var user = await _dbCtx.ApiUsers
-            .Include(u=>u.MemberingGroups)
-            .FirstOrDefaultAsync(u => u.Id == id);
-        if (user == null)
-            return BadRequest("Invalid Id");
+        var users = await _dbCtx.Users
+            .Include(u=>u.GroupMemberships)
+            .Where(u => u.Id == _userManager.GetUserId(User))
+            .ToListAsync();
 
-        return Ok(user);
+        return Ok(users);
     }
 
 
-    [HttpPost]
-    [Route("Create")]
-    public async Task<IActionResult> Create(UserDto entityDto)
-    {
-        var entity = new UserEntity()
-        {
-            Nickname = entityDto.Nickname,
-        };
-
-        await _dbCtx.ApiUsers.AddAsync(entity);
-        await _dbCtx.SaveChangesAsync();
-        return CreatedAtAction("Get", new { id = entity.Id }, entity);
-    }
 
 
     [HttpPatch]
     [Route("Update")]
-    public async Task<IActionResult> Update(int id, UserDto entityDto)
+    public async Task<IActionResult> Update(string userId, UserDto entityDto)
     {
-        var user = await _dbCtx.ApiUsers.FirstOrDefaultAsync(u => u.Id == id);
+        if (!(await _existCheck.DoesUserExistAsync(userId)))
+            return BadRequest("Invalid Id");
+
+        if (!(_acessCheck.IsUserAcessible(userId)))
+            return Unauthorized("Acess denied");
+
+
+        var user = await _dbCtx.Users.FirstOrDefaultAsync(u => u.Id == userId);
         if (user == null)
             return BadRequest();
 
@@ -66,14 +71,22 @@ public class UsersController : ControllerBase
 
     [HttpDelete]
     [Route("Delete")]
-    public async Task<IActionResult> Delete(int id)
+    public async Task<IActionResult> Delete(string userId)
     {
-        var user = _dbCtx.ApiUsers.FirstOrDefault(u => u.Id == id);
-        if (user == null)
+        if (!(await _existCheck.DoesUserExistAsync(userId)))
             return BadRequest("Invalid Id");
 
-        _dbCtx.ApiUsers.Remove(user);
+        if (!(_acessCheck.IsUserAcessible(userId)))
+            return Unauthorized("Acess denied");
+
+
+        var user = _dbCtx.Users.FirstOrDefault(u => u.Id == userId);
+
+        await _userManager.DeleteAsync(user);
         await _dbCtx.SaveChangesAsync();
         return NoContent();
     }
+
+
+    
 }

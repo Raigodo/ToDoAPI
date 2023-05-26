@@ -6,13 +6,14 @@ using ToDoList.API.Services;
 
 namespace ToDoList.API.Controllers;
 
+
 [Route("api/[controller]")]
 [ApiController]
-public class AccountController : ControllerBase
+public class AuthController : ControllerBase
 {
     private IAuthService _authService;
 
-    public AccountController(IAuthService authService)
+    public AuthController(IAuthService authService)
     {
         _authService = authService;
     }
@@ -35,8 +36,6 @@ public class AccountController : ControllerBase
     public async Task<IActionResult> Register(RegisterDto registerDto)
     {
         var result = await _authService.Register(registerDto);
-
-        Debug.WriteLine(result);
 
         if (!result)
             return BadRequest("registration failed");

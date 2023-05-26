@@ -1,11 +1,12 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Text.Json.Serialization;
-using System.Text.Json;
 using ToDoList.API.DAL;
 using ToDoList.API.Domain.Dto;
 using ToDoList.API.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using System.Threading.Tasks;
+using ToDoList.API.Services.Check;
 
 namespace ToDoList.API.Controllers;
 
@@ -16,21 +17,35 @@ namespace ToDoList.API.Controllers;
 public class TasksController : ControllerBase
 {
     private ApiDbContext _dbCtx;
+    private UserManager<IdentityUser> _userManager;
+    private IAcessGuardService _acessCheck;
+    private ICheckExistingRecordService _existCheck;
 
-    public TasksController(ApiDbContext appDbContext)
+    public TasksController(
+        ApiDbContext appDbContext,
+        UserManager<IdentityUser> userManager,
+        IAcessGuardService acessCheck,
+        ICheckExistingRecordService existCheck)
     {
         _dbCtx = appDbContext;
+        _userManager = userManager;
+        _acessCheck = acessCheck;
+        _existCheck = existCheck;
     }
 
     [HttpGet]
     [Route("Get")]
-    public async Task<IActionResult> Get(int id)
+    public async Task<IActionResult> Get(int taskId)
     {
-        var task = await _dbCtx.ApiTasks
-            .FirstOrDefaultAsync(t=>t.Id==id);
-
-        if (task == null)
+        if (!(await _existCheck.DoesTaskExistAsync(taskId)))
             return BadRequest("Invalid Id");
+
+        if (await _acessCheck.IsTaskAcessibleAsync(taskId))
+            return Unauthorized("Acess denied");
+
+
+        var task = await _dbCtx.ApiTasks
+            .FirstOrDefaultAsync(t => t.Id == taskId);
 
         return Ok(task);
     }
@@ -39,6 +54,13 @@ public class TasksController : ControllerBase
     [Route("Create")]
     public async Task<IActionResult> Create(TaskDto entityDto)
     {
+        if (!(await _existCheck.DoesBoxExistAsync(entityDto.ParrentBoxId)))
+            return BadRequest("Invalid Id");
+
+        if (!(await _acessCheck.IsBoxAcessibleAsync(entityDto.ParrentBoxId)))
+            return Unauthorized("Acess denied");
+
+
         var entity = new TaskEntity()
         {
             Title = entityDto.Title,
@@ -53,11 +75,21 @@ public class TasksController : ControllerBase
 
     [HttpPatch]
     [Route("Update")]
-    public async Task<IActionResult> Update(int id, TaskDto entityDto)
+    public async Task<IActionResult> Update(int taskId, TaskDto entityDto)
     {
-        var task = await _dbCtx.ApiTasks.FirstOrDefaultAsync(t=>t.Id == id);
-        if (task == null)
-            return BadRequest();
+        if (!(await _existCheck.DoesTaskExistAsync(taskId)) ||
+            !(await _existCheck.DoesBoxExistAsync(entityDto.ParrentBoxId)))
+            return BadRequest("Invalid Id");
+
+        if (!(await _acessCheck.IsTaskAcessibleAsync(taskId)) ||
+            !(await _acessCheck.IsBoxAcessibleAsync(entityDto.ParrentBoxId)))
+            return Unauthorized("Acess denied");
+
+
+        var task = await _dbCtx.ApiTasks
+            .Include(t => t.ParrentBox)
+            .Include(t => t.ParrentBox.AssociatedGroup)
+            .FirstOrDefaultAsync(t => t.Id == taskId);
 
         task.ParrentBoxId = entityDto.ParrentBoxId;
         task.Title = entityDto.Title;
@@ -69,15 +101,22 @@ public class TasksController : ControllerBase
 
     [HttpDelete]
     [Route("Delete")]
-    public async Task<IActionResult> Delete(int id)
+    public async Task<IActionResult> Delete(int taskId)
     {
-        var task = await _dbCtx.ApiTasks.FirstOrDefaultAsync(t => t.Id == id);
-        if (task == null)
-            return BadRequest();
+        if (!(await _existCheck.DoesTaskExistAsync(taskId)))
+            return BadRequest("Invalid Id");
+
+        if (await _acessCheck.IsTaskAcessibleAsync(taskId))
+            return Unauthorized("Acess denied");
+
+
+        var task = await _dbCtx.ApiTasks
+            .Include(t => t.ParrentBox)
+            .Include(t => t.ParrentBox.AssociatedGroup)
+            .FirstOrDefaultAsync(t => t.Id == taskId);
 
         _dbCtx.ApiTasks.Remove(task);
         await _dbCtx.SaveChangesAsync();
         return NoContent();
     }
-    
 }
