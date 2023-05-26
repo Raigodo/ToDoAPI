@@ -1,20 +1,23 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using ToDoList.API.DAL;
+using ToDoList.API.Domain.AccountDto;
+using ToDoList.API.Domain.Entities;
 
 namespace ToDoList.API.Services.Check
 {
     public class AcessGuardService : IAcessGuardService
     {
         private ApiDbContext _dbCtx;
-        private UserManager<IdentityUser> _userManager;
+        private UserManager<UserEntity> _userManager;
         private IHttpContextAccessor _httpCtx;
 
         public AcessGuardService(
             ApiDbContext appDbContext,
-            UserManager<IdentityUser> userManager,
+            UserManager<UserEntity> userManager,
             IHttpContextAccessor httpCtx)
         {
             _dbCtx = appDbContext;
@@ -22,7 +25,7 @@ namespace ToDoList.API.Services.Check
             _httpCtx = httpCtx;
         }
 
-        public bool IsUserAcessible(string userId)
+        public async Task<bool> IsUserAcessibleAsync(string userId)
         {
             var isSelfAction = userId == _userManager.GetUserId(_httpCtx.HttpContext?.User);
             return isSelfAction;
@@ -31,11 +34,11 @@ namespace ToDoList.API.Services.Check
         public async Task<bool> IsGroupAcessibleAsync(int groupId)
         {
             var accountId = _userManager.GetUserId(_httpCtx.HttpContext?.User);
-            return await _dbCtx.ApiGroupsUsers
-                .Include(gu => gu.User)
-                .AnyAsync(gu => 
-                    gu.GroupId == groupId 
-                    && gu.User.Id == accountId);
+            return await _dbCtx.ApiGroups
+                .Include(g => g.MembersInGroup)
+                .AnyAsync(g =>
+                    g.Id == groupId
+                    && g.MembersInGroup.Any(gu => gu.User.Id == accountId));
         }
 
         public async Task<bool> IsTaskAcessibleAsync(int taskId)

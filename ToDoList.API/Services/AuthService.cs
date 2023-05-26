@@ -5,15 +5,16 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using ToDoList.API.Domain.AccountDto;
+using ToDoList.API.Domain.Entities;
 
 namespace ToDoList.API.Services;
 
 public class AuthService : IAuthService
 {
-    private UserManager<IdentityUser> _userManager;
+    private UserManager<UserEntity> _userManager;
     private IConfiguration _config;
 
-    public AuthService(UserManager<IdentityUser> userManager, IConfiguration config)
+    public AuthService(UserManager<UserEntity> userManager, IConfiguration config)
     {
         _userManager = userManager;
         _config = config;
@@ -21,31 +22,32 @@ public class AuthService : IAuthService
 
     public async Task<bool> Login(LoginDto loginDto)
     {
-        var identityUser = await _userManager.FindByNameAsync(loginDto.Username);
-        if (identityUser == null)
+        var user = await _userManager.FindByNameAsync(loginDto.Username);
+        if (user == null)
             return false;
 
-        return await _userManager.CheckPasswordAsync(identityUser, loginDto.Password);
+        return await _userManager.CheckPasswordAsync(user, loginDto.Password);
     }
 
     public async Task<bool> Register(RegisterDto RegisterDto)
     {
-        var identityUser = new IdentityUser
+        var user = new UserEntity
         {
             UserName = RegisterDto.Username,
             Email = RegisterDto.Email,
         };
 
-        var result = await _userManager.CreateAsync(identityUser, RegisterDto.Password);
+        var result = await _userManager.CreateAsync(user, RegisterDto.Password);
+
 
         return result.Succeeded;
     }
 
-    public string GenerateTokenString(LoginDto loginDto)
+    public async Task<string> GenerateTokenStringAsync(LoginDto loginDto)
     {
         var claims = new List<Claim>
         {
-            new Claim(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString()),
+            new Claim(ClaimTypes.NameIdentifier, (await _userManager.FindByNameAsync(loginDto.Username)).Id),
             new Claim(ClaimTypes.Name, loginDto.Username),
             new Claim(ClaimTypes.Role, "Admin")
         };

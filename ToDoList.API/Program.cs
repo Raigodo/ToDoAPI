@@ -6,6 +6,7 @@ using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
 using System.Text;
 using ToDoList.API.DAL;
+using ToDoList.API.Domain.Entities;
 using ToDoList.API.Services;
 using ToDoList.API.Services.Check;
 
@@ -16,7 +17,7 @@ builder.Services.AddDbContext<ApiDbContext>(opt =>
         builder.Configuration.GetConnectionString("DefaultConnection"),
         b => b.MigrationsAssembly(builder.Configuration.GetConnectionString("AppAssembly"))
     ));
-builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
+builder.Services.AddIdentity<UserEntity, IdentityRole>(options =>
 {
     options.Password.RequiredLength = 5;
 })

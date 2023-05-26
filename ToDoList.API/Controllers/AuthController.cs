@@ -27,7 +27,7 @@ public class AuthController : ControllerBase
         if (!result)
             return BadRequest("Incorrect Username or Password");
 
-        var tokenString = _authService.GenerateTokenString(loginDto);
+        var tokenString = await _authService.GenerateTokenStringAsync(loginDto);
         return Ok(tokenString);
     }
 

@@ -5,6 +5,8 @@ using ToDoList.API.Domain.Dto;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using ToDoList.API.Services.Check;
+using ToDoList.API.Domain.Entities;
+using System.Security.Claims;
 
 namespace ToDoList.API.Controllers;
 
@@ -15,13 +17,13 @@ namespace ToDoList.API.Controllers;
 public class UsersController : ControllerBase
 {
     private ApiDbContext _dbCtx;
-    private UserManager<IdentityUser> _userManager;
+    private UserManager<UserEntity> _userManager;
     private IAcessGuardService _acessCheck;
     private ICheckExistingRecordService _existCheck;
 
     public UsersController(
         ApiDbContext appDbContext, 
-        UserManager<IdentityUser> userManager,
+        UserManager<UserEntity> userManager,
         IAcessGuardService acessCheck,
         ICheckExistingRecordService existCheck)
     {
@@ -36,12 +38,15 @@ public class UsersController : ControllerBase
     [Route("Get")]
     public async Task<IActionResult> Get()
     {
-        var users = await _dbCtx.Users
-            .Include(u=>u.GroupMemberships)
-            .Where(u => u.Id == _userManager.GetUserId(User))
-            .ToListAsync();
+        var userId = _userManager.GetUserId(User);
+        var user = await _dbCtx.Users
+            .Include(u => u.GroupMemberships)
+            .FirstOrDefaultAsync(u => u.Id == userId);
 
-        return Ok(users);
+        if (user == null) 
+            return StatusCode(StatusCodes.Status500InternalServerError, "Unexpected error");
+
+        return Ok(user);
     }
 
 
@@ -54,7 +59,7 @@ public class UsersController : ControllerBase
         if (!(await _existCheck.DoesUserExistAsync(userId)))
             return BadRequest("Invalid Id");
 
-        if (!(_acessCheck.IsUserAcessible(userId)))
+        if (!(await _acessCheck.IsUserAcessibleAsync(userId)))
             return Unauthorized("Acess denied");
 
 
@@ -76,7 +81,7 @@ public class UsersController : ControllerBase
         if (!(await _existCheck.DoesUserExistAsync(userId)))
             return BadRequest("Invalid Id");
 
-        if (!(_acessCheck.IsUserAcessible(userId)))
+        if (!(await _acessCheck.IsUserAcessibleAsync(userId)))
             return Unauthorized("Acess denied");
 
 

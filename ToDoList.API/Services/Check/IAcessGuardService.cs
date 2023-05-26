@@ -4,7 +4,7 @@ namespace ToDoList.API.Services.Check
 {
     public interface IAcessGuardService
     {
-        public bool IsUserAcessible(string userId);
+        public Task<bool> IsUserAcessibleAsync(string userId);
 
         public Task<bool> IsTaskAcessibleAsync(int taskId);
         public Task<bool> IsBoxAcessibleAsync(int boxId);

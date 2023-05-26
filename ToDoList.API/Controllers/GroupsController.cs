@@ -16,13 +16,13 @@ namespace ToDoList.API.Controllers;
 public class GroupsController : ControllerBase
 {
     private ApiDbContext _dbCtx;
-    private UserManager<IdentityUser> _userManager;
+    private UserManager<UserEntity> _userManager;
     private IAcessGuardService _acessCheck;
     private ICheckExistingRecordService _existCheck;
 
     public GroupsController(
         ApiDbContext appDbContext,
-        UserManager<IdentityUser> userManager,
+        UserManager<UserEntity> userManager,
         IAcessGuardService acessCheck,
         ICheckExistingRecordService existCheck)
     {
@@ -40,7 +40,7 @@ public class GroupsController : ControllerBase
         if (!(await _existCheck.DoesGroupExistAsync(groupId)))
             return BadRequest("Invalid Id");
 
-        if (await _acessCheck.IsGroupAcessibleAsync(groupId))
+        if (!(await _acessCheck.IsGroupAcessibleAsync(groupId)))
             return Unauthorized("Acess denied");
 
 
@@ -66,11 +66,12 @@ public class GroupsController : ControllerBase
         await _dbCtx.ApiGroups.AddAsync(group);
         await _dbCtx.SaveChangesAsync();
 
-        group.MembersInGroup.Add(new GroupsUsersEntity
-        {
+        var groupMember = new GroupsUsersEntity{
             UserId = _userManager.GetUserId(User),
             GroupId = group.Id
-        });
+        };
+        await _dbCtx.ApiGroupsUsers.AddAsync(groupMember);
+        await _dbCtx.SaveChangesAsync();
 
         return CreatedAtAction("Get", new { group.Id }, group);
     }
@@ -83,7 +84,7 @@ public class GroupsController : ControllerBase
         if (!(await _existCheck.DoesGroupExistAsync(groupId)))
             return BadRequest("Invalid Id");
 
-        if (await _acessCheck.IsGroupAcessibleAsync(groupId))
+        if (!(await _acessCheck.IsGroupAcessibleAsync(groupId)))
             return Unauthorized("Acess denied");
 
 
@@ -104,7 +105,7 @@ public class GroupsController : ControllerBase
         if (!(await _existCheck.DoesGroupExistAsync(groupId)))
             return BadRequest("Invalid Id");
 
-        if (await _acessCheck.IsGroupAcessibleAsync(groupId))
+        if (!(await _acessCheck.IsGroupAcessibleAsync(groupId)))
             return Unauthorized("Acess denied");
 
 

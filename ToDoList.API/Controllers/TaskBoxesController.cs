@@ -18,13 +18,13 @@ namespace ToDoList.API.Controllers;
 public class TaskBoxesController : ControllerBase
 {
     private ApiDbContext _dbCtx;
-    private UserManager<IdentityUser> _userManager;
+    private UserManager<UserEntity> _userManager;
     private IAcessGuardService _acessCheck;
     private ICheckExistingRecordService _existCheck;
 
     public TaskBoxesController(
         ApiDbContext appDbContext,
-        UserManager<IdentityUser> userManager,
+        UserManager<UserEntity> userManager,
         IAcessGuardService acessCheck,
         ICheckExistingRecordService existCheck)
     {
@@ -42,7 +42,7 @@ public class TaskBoxesController : ControllerBase
         if (!(await _existCheck.DoesBoxExistAsync(boxId)))
             return BadRequest("Invalid Id");
 
-        if (await _acessCheck.IsBoxAcessibleAsync(boxId))
+        if (!(await _acessCheck.IsBoxAcessibleAsync(boxId)))
             return Unauthorized("Acess denied");
 
 
@@ -62,7 +62,7 @@ public class TaskBoxesController : ControllerBase
         if (!(await _existCheck.DoesBoxExistAsync(boxId)))
             return BadRequest("Invalid Id");
 
-        if (await _acessCheck.IsBoxAcessibleAsync(boxId))
+        if (!(await _acessCheck.IsBoxAcessibleAsync(boxId)))
             return Unauthorized("Acess denied");
 
 
@@ -82,7 +82,7 @@ public class TaskBoxesController : ControllerBase
         if (!(await _existCheck.DoesGroupExistAsync(entityDto.AssociatedGroupId)))
             return BadRequest("Invalid Id");
 
-        if (await _acessCheck.IsGroupAcessibleAsync(entityDto.AssociatedGroupId))
+        if (!(await _acessCheck.IsGroupAcessibleAsync(entityDto.AssociatedGroupId)))
             return Unauthorized("Acess denied");
 
 
@@ -107,7 +107,7 @@ public class TaskBoxesController : ControllerBase
             !(await _existCheck.DoesGroupExistAsync(entityDto.AssociatedGroupId)))
             return BadRequest("Invalid Id");
 
-        if (await _acessCheck.IsGroupAcessibleAsync(entityDto.AssociatedGroupId))
+        if (!(await _acessCheck.IsGroupAcessibleAsync(entityDto.AssociatedGroupId)))
             return Unauthorized("Acess denied");
 
 

@@ -17,13 +17,13 @@ namespace ToDoList.API.Controllers;
 public class GroupMembershipController : ControllerBase
 {
     private ApiDbContext _dbCtx;
-    private UserManager<IdentityUser> _userManager;
+    private UserManager<UserEntity> _userManager;
     private IAcessGuardService _acessCheck;
     private ICheckExistingRecordService _existCheck;
 
     public GroupMembershipController(
         ApiDbContext appDbContext,
-        UserManager<IdentityUser> userManager,
+        UserManager<UserEntity> userManager,
         IAcessGuardService acessCheck,
         ICheckExistingRecordService existCheck)
     {

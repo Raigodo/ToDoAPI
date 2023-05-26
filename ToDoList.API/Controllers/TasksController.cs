@@ -17,13 +17,13 @@ namespace ToDoList.API.Controllers;
 public class TasksController : ControllerBase
 {
     private ApiDbContext _dbCtx;
-    private UserManager<IdentityUser> _userManager;
+    private UserManager<UserEntity> _userManager;
     private IAcessGuardService _acessCheck;
     private ICheckExistingRecordService _existCheck;
 
     public TasksController(
         ApiDbContext appDbContext,
-        UserManager<IdentityUser> userManager,
+        UserManager<UserEntity> userManager,
         IAcessGuardService acessCheck,
         ICheckExistingRecordService existCheck)
     {
@@ -40,7 +40,7 @@ public class TasksController : ControllerBase
         if (!(await _existCheck.DoesTaskExistAsync(taskId)))
             return BadRequest("Invalid Id");
 
-        if (await _acessCheck.IsTaskAcessibleAsync(taskId))
+        if (!(await _acessCheck.IsTaskAcessibleAsync(taskId)))
             return Unauthorized("Acess denied");
 
 
