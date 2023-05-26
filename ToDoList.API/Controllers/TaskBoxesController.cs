@@ -5,26 +5,29 @@ using System.Text.Json;
 using ToDoList.API.DAL;
 using ToDoList.API.Domain.Dto;
 using ToDoList.API.Domain.Entities;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ToDoList.API.Controllers;
 
 
 [ApiController]
+[Authorize]
 [Route("api/[controller]")]
 public class TaskBoxesController : ControllerBase
 {
-    private AppDbContext _dbCtx;
+    private ApiDbContext _dbCtx;
 
-    public TaskBoxesController(AppDbContext appDbContext)
+    public TaskBoxesController(ApiDbContext appDbContext)
     {
         _dbCtx = appDbContext;
     }
 
     [HttpGet]
+    [Authorize]
     [Route("GetRoot")]
     public async Task<IActionResult> GetRoot(int ownerGroupId)
     {
-        var rootBoxes = await _dbCtx.TaskBoxes
+        var rootBoxes = await _dbCtx.ApiTaskBoxes
             .Include(b => b.Tasks)
             .Include(b => b.SubFolders)
             .Where(b=>b.AssociatedGroupId == ownerGroupId && b.ParrentBoxId == null)
@@ -36,7 +39,7 @@ public class TaskBoxesController : ControllerBase
     [Route("Get")]
     public async Task<IActionResult> Get(int id)
     {
-        var box = await _dbCtx.TaskBoxes
+        var box = await _dbCtx.ApiTaskBoxes
             .Include(b => b.Tasks)
             .Include(b => b.SubFolders)
             .ToListAsync();
@@ -58,7 +61,7 @@ public class TaskBoxesController : ControllerBase
             ParrentBoxId = entityDto.ParrentBoxId,
             Title = entityDto.Title,
         };
-        await _dbCtx.TaskBoxes.AddAsync(entity);
+        await _dbCtx.ApiTaskBoxes.AddAsync(entity);
         await _dbCtx.SaveChangesAsync();
         return CreatedAtAction("Get", new { entity.Id }, entity);
     }
@@ -68,7 +71,7 @@ public class TaskBoxesController : ControllerBase
     [Route("Update")]
     public async Task<IActionResult> Update(int id, TaskBoxDto entityDto)
     {
-        var box = await _dbCtx.TaskBoxes.FirstOrDefaultAsync(b => b.Id == id);
+        var box = await _dbCtx.ApiTaskBoxes.FirstOrDefaultAsync(b => b.Id == id);
         if (box == null)
             return BadRequest();
 
@@ -85,11 +88,11 @@ public class TaskBoxesController : ControllerBase
     [Route("Delete")]
     public async Task<IActionResult> Delete(int id)
     {
-        var box = await _dbCtx.TaskBoxes.FirstOrDefaultAsync(b => b.Id == id);
+        var box = await _dbCtx.ApiTaskBoxes.FirstOrDefaultAsync(b => b.Id == id);
         if (box == null)
             return BadRequest();
 
-        _dbCtx.TaskBoxes.Remove(box);
+        _dbCtx.ApiTaskBoxes.Remove(box);
         await _dbCtx.SaveChangesAsync();
         return NoContent();
     }

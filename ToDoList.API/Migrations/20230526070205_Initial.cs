@@ -6,13 +6,13 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ToDoList.API.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Groups",
+                name: "ApiGroups",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
@@ -22,11 +22,11 @@ namespace ToDoList.API.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Groups", x => x.Id);
+                    table.PrimaryKey("PK_ApiGroups", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "Users",
+                name: "ApiUsers",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
@@ -35,11 +35,11 @@ namespace ToDoList.API.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Users", x => x.Id);
+                    table.PrimaryKey("PK_ApiUsers", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "TaskBoxes",
+                name: "ApiTaskBoxes",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
@@ -50,22 +50,22 @@ namespace ToDoList.API.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_TaskBoxes", x => x.Id);
+                    table.PrimaryKey("PK_ApiTaskBoxes", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_TaskBoxes_Groups_AssociatedGroupId",
+                        name: "FK_ApiTaskBoxes_ApiGroups_AssociatedGroupId",
                         column: x => x.AssociatedGroupId,
-                        principalTable: "Groups",
+                        principalTable: "ApiGroups",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_TaskBoxes_TaskBoxes_ParrentBoxId",
+                        name: "FK_ApiTaskBoxes_ApiTaskBoxes_ParrentBoxId",
                         column: x => x.ParrentBoxId,
-                        principalTable: "TaskBoxes",
+                        principalTable: "ApiTaskBoxes",
                         principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
-                name: "GroupsUsers",
+                name: "ApiGroupsUsers",
                 columns: table => new
                 {
                     UserId = table.Column<int>(type: "integer", nullable: false),
@@ -73,23 +73,23 @@ namespace ToDoList.API.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_GroupsUsers", x => new { x.UserId, x.GroupId });
+                    table.PrimaryKey("PK_ApiGroupsUsers", x => new { x.UserId, x.GroupId });
                     table.ForeignKey(
-                        name: "FK_GroupsUsers_Groups_GroupId",
+                        name: "FK_ApiGroupsUsers_ApiGroups_GroupId",
                         column: x => x.GroupId,
-                        principalTable: "Groups",
+                        principalTable: "ApiGroups",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_GroupsUsers_Users_UserId",
+                        name: "FK_ApiGroupsUsers_ApiUsers_UserId",
                         column: x => x.UserId,
-                        principalTable: "Users",
+                        principalTable: "ApiUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "ToDoTasks",
+                name: "ApiTasks",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
@@ -100,33 +100,33 @@ namespace ToDoList.API.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ToDoTasks", x => x.Id);
+                    table.PrimaryKey("PK_ApiTasks", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_ToDoTasks_TaskBoxes_ParrentBoxId",
+                        name: "FK_ApiTasks_ApiTaskBoxes_ParrentBoxId",
                         column: x => x.ParrentBoxId,
-                        principalTable: "TaskBoxes",
+                        principalTable: "ApiTaskBoxes",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_GroupsUsers_GroupId",
-                table: "GroupsUsers",
+                name: "IX_ApiGroupsUsers_GroupId",
+                table: "ApiGroupsUsers",
                 column: "GroupId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_TaskBoxes_AssociatedGroupId",
-                table: "TaskBoxes",
+                name: "IX_ApiTaskBoxes_AssociatedGroupId",
+                table: "ApiTaskBoxes",
                 column: "AssociatedGroupId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_TaskBoxes_ParrentBoxId",
-                table: "TaskBoxes",
+                name: "IX_ApiTaskBoxes_ParrentBoxId",
+                table: "ApiTaskBoxes",
                 column: "ParrentBoxId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ToDoTasks_ParrentBoxId",
-                table: "ToDoTasks",
+                name: "IX_ApiTasks_ParrentBoxId",
+                table: "ApiTasks",
                 column: "ParrentBoxId");
         }
 
@@ -134,19 +134,19 @@ namespace ToDoList.API.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "GroupsUsers");
+                name: "ApiGroupsUsers");
 
             migrationBuilder.DropTable(
-                name: "ToDoTasks");
+                name: "ApiTasks");
 
             migrationBuilder.DropTable(
-                name: "Users");
+                name: "ApiUsers");
 
             migrationBuilder.DropTable(
-                name: "TaskBoxes");
+                name: "ApiTaskBoxes");
 
             migrationBuilder.DropTable(
-                name: "Groups");
+                name: "ApiGroups");
         }
     }
 }

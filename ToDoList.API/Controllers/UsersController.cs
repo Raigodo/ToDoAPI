@@ -1,20 +1,20 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Text.Json.Serialization;
-using System.Text.Json;
 using ToDoList.API.DAL;
 using ToDoList.API.Domain.Dto;
 using ToDoList.API.Domain.Entities;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ToDoList.API.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/[controller]")]
 public class UsersController : ControllerBase
 {
-    private AppDbContext _dbCtx;
+    private ApiDbContext _dbCtx;
 
-    public UsersController(AppDbContext appDbContext)
+    public UsersController(ApiDbContext appDbContext)
     {
         _dbCtx = appDbContext;
     }
@@ -24,7 +24,7 @@ public class UsersController : ControllerBase
     [Route("Get")]
     public async Task<IActionResult> Get(int id)
     {
-        var user = await _dbCtx.Users
+        var user = await _dbCtx.ApiUsers
             .Include(u=>u.MemberingGroups)
             .FirstOrDefaultAsync(u => u.Id == id);
         if (user == null)
@@ -43,7 +43,7 @@ public class UsersController : ControllerBase
             Nickname = entityDto.Nickname,
         };
 
-        await _dbCtx.Users.AddAsync(entity);
+        await _dbCtx.ApiUsers.AddAsync(entity);
         await _dbCtx.SaveChangesAsync();
         return CreatedAtAction("Get", new { id = entity.Id }, entity);
     }
@@ -53,7 +53,7 @@ public class UsersController : ControllerBase
     [Route("Update")]
     public async Task<IActionResult> Update(int id, UserDto entityDto)
     {
-        var user = await _dbCtx.Users.FirstOrDefaultAsync(u => u.Id == id);
+        var user = await _dbCtx.ApiUsers.FirstOrDefaultAsync(u => u.Id == id);
         if (user == null)
             return BadRequest();
 
@@ -68,11 +68,11 @@ public class UsersController : ControllerBase
     [Route("Delete")]
     public async Task<IActionResult> Delete(int id)
     {
-        var user = _dbCtx.Users.FirstOrDefault(u => u.Id == id);
+        var user = _dbCtx.ApiUsers.FirstOrDefault(u => u.Id == id);
         if (user == null)
             return BadRequest("Invalid Id");
 
-        _dbCtx.Users.Remove(user);
+        _dbCtx.ApiUsers.Remove(user);
         await _dbCtx.SaveChangesAsync();
         return NoContent();
     }

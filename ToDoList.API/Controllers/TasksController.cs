@@ -5,17 +5,19 @@ using System.Text.Json;
 using ToDoList.API.DAL;
 using ToDoList.API.Domain.Dto;
 using ToDoList.API.Domain.Entities;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ToDoList.API.Controllers;
 
 
 [ApiController]
+[Authorize]
 [Route("api/[controller]")]
 public class TasksController : ControllerBase
 {
-    private AppDbContext _dbCtx;
+    private ApiDbContext _dbCtx;
 
-    public TasksController(AppDbContext appDbContext)
+    public TasksController(ApiDbContext appDbContext)
     {
         _dbCtx = appDbContext;
     }
@@ -24,7 +26,7 @@ public class TasksController : ControllerBase
     [Route("Get")]
     public async Task<IActionResult> Get(int id)
     {
-        var task = await _dbCtx.ToDoTasks
+        var task = await _dbCtx.ApiTasks
             .FirstOrDefaultAsync(t=>t.Id==id);
 
         if (task == null)
@@ -43,7 +45,7 @@ public class TasksController : ControllerBase
             Description = entityDto.Description,
             ParrentBoxId = entityDto.ParrentBoxId,
         };
-        await _dbCtx.ToDoTasks.AddAsync(entity);
+        await _dbCtx.ApiTasks.AddAsync(entity);
         await _dbCtx.SaveChangesAsync();
 
         return CreatedAtAction("Get", new { entity.Id }, entity);
@@ -53,7 +55,7 @@ public class TasksController : ControllerBase
     [Route("Update")]
     public async Task<IActionResult> Update(int id, TaskDto entityDto)
     {
-        var task = await _dbCtx.ToDoTasks.FirstOrDefaultAsync(t=>t.Id == id);
+        var task = await _dbCtx.ApiTasks.FirstOrDefaultAsync(t=>t.Id == id);
         if (task == null)
             return BadRequest();
 
@@ -69,11 +71,11 @@ public class TasksController : ControllerBase
     [Route("Delete")]
     public async Task<IActionResult> Delete(int id)
     {
-        var task = await _dbCtx.ToDoTasks.FirstOrDefaultAsync(t => t.Id == id);
+        var task = await _dbCtx.ApiTasks.FirstOrDefaultAsync(t => t.Id == id);
         if (task == null)
             return BadRequest();
 
-        _dbCtx.ToDoTasks.Remove(task);
+        _dbCtx.ApiTasks.Remove(task);
         await _dbCtx.SaveChangesAsync();
         return NoContent();
     }

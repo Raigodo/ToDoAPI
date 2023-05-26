@@ -1,19 +1,20 @@
-﻿using Microsoft.EntityFrameworkCore;
-using ToDoList.API.DAL.Interfaces;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using ToDoList.API.Domain.Entities;
 
 namespace ToDoList.API.DAL;
 
-public class AppDbContext : DbContext
+public class ApiDbContext : IdentityDbContext
 {
-    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
+    public ApiDbContext(DbContextOptions<ApiDbContext> options) : base(options)
     {
-        //Database.EnsureDeleted();
-        //Database.EnsureCreated();
+
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        base.OnModelCreating(modelBuilder);
         var groupUsers = modelBuilder.Entity<GroupMemberEntity>();
 
         groupUsers.HasKey(gu => new { gu.UserId, gu.GroupId });
@@ -35,9 +36,9 @@ public class AppDbContext : DbContext
             .ValueGeneratedOnAdd();
     }
 
-    public DbSet<TaskEntity> ToDoTasks { get; set; }
-    public DbSet<TaskBoxEntity> TaskBoxes { get; set; }
-    public DbSet<UserGroupEntity> Groups { get; set; }
-    public DbSet<UserEntity> Users { get; set; }
-    public DbSet<GroupMemberEntity> GroupsUsers { get; set; }
+    public DbSet<TaskEntity> ApiTasks { get; set; }
+    public DbSet<TaskBoxEntity> ApiTaskBoxes { get; set; }
+    public DbSet<UserGroupEntity> ApiGroups { get; set; }
+    public DbSet<UserEntity> ApiUsers { get; set; }
+    public DbSet<GroupMemberEntity> ApiGroupsUsers { get; set; }
 }
