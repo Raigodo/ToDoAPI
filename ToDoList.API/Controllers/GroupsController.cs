@@ -6,12 +6,13 @@ using ToDoList.API.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using ToDoList.API.Services.Check;
+using ToDoList.API.Domain.Roles;
 
 namespace ToDoList.API.Controllers;
 
 
 [ApiController]
-[Authorize]
+[Authorize(Roles = "ApiUser,ApiAdmin")]
 [Route("api/[controller]")]
 public class GroupsController : ControllerBase
 {
@@ -66,9 +67,10 @@ public class GroupsController : ControllerBase
         await _dbCtx.ApiGroups.AddAsync(group);
         await _dbCtx.SaveChangesAsync();
 
-        var groupMember = new GroupsUsersEntity{
+        var groupMember = new GroupsUsersEntity {
             UserId = _userManager.GetUserId(User),
-            GroupId = group.Id
+            GroupId = group.Id,
+            Role = GroupMemberRoles.Admin,
         };
         await _dbCtx.ApiGroupsUsers.AddAsync(groupMember);
         await _dbCtx.SaveChangesAsync();

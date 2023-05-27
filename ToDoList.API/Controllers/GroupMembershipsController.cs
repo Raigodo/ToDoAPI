@@ -12,7 +12,7 @@ namespace ToDoList.API.Controllers;
 
 
 [ApiController]
-[Authorize]
+[Authorize(Roles = "ApiUser,ApiAdmin")]
 [Route("api/[controller]")]
 public class GroupMembershipController : ControllerBase
 {

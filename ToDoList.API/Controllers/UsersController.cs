@@ -12,7 +12,7 @@ namespace ToDoList.API.Controllers;
 
 
 [ApiController]
-[Authorize]
+[Authorize(Roles = "ApiUser,ApiAdmin")]
 [Route("api/[controller]")]
 public class UsersController : ControllerBase
 {
@@ -33,7 +33,17 @@ public class UsersController : ControllerBase
         _existCheck = existCheck;
     }
 
-    
+
+    [HttpGet]
+    [Authorize(Roles = "ApiAdmin")]
+    [Route("GetAll")]
+    public async Task<IActionResult> GetAll()
+    {
+        var users = await _userManager.Users.ToListAsync();
+        return Ok(users);
+    }
+
+
     [HttpGet]
     [Route("Get")]
     public async Task<IActionResult> Get()
@@ -59,13 +69,11 @@ public class UsersController : ControllerBase
         if (!(await _existCheck.DoesUserExistAsync(userId)))
             return BadRequest("Invalid Id");
 
-        if (!(await _acessCheck.IsUserAcessibleAsync(userId)))
+        if (!_acessCheck.IsUserAcessible(userId))
             return Unauthorized("Acess denied");
 
 
         var user = await _dbCtx.Users.FirstOrDefaultAsync(u => u.Id == userId);
-        if (user == null)
-            return BadRequest();
 
         user.Nickname = entityDto.Nickname;
 
@@ -81,11 +89,11 @@ public class UsersController : ControllerBase
         if (!(await _existCheck.DoesUserExistAsync(userId)))
             return BadRequest("Invalid Id");
 
-        if (!(await _acessCheck.IsUserAcessibleAsync(userId)))
+        if (! _acessCheck.IsUserAcessible(userId))
             return Unauthorized("Acess denied");
 
 
-        var user = _dbCtx.Users.FirstOrDefault(u => u.Id == userId);
+        var user = await _dbCtx.Users.FirstOrDefaultAsync(u => u.Id == userId);
 
         await _userManager.DeleteAsync(user);
         await _dbCtx.SaveChangesAsync();

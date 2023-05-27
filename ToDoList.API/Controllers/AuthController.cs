@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 using ToDoList.API.Domain.AccountDto;
-using ToDoList.API.Services;
+using ToDoList.API.Services.Auth;
 
 namespace ToDoList.API.Controllers;
 

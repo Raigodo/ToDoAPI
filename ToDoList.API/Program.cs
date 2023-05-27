@@ -7,8 +7,9 @@ using Swashbuckle.AspNetCore.Filters;
 using System.Text;
 using ToDoList.API.DAL;
 using ToDoList.API.Domain.Entities;
-using ToDoList.API.Services;
+using ToDoList.API.Services.Auth;
 using ToDoList.API.Services.Check;
+using ToDoList.API.Services.Seeder;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,10 +27,12 @@ builder.Services.AddIdentity<UserEntity, IdentityRole>(options =>
 
 builder.Services.AddAuthentication(options =>{
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-}).AddJwtBearer(options =>
+}).AddJwtBearer(jwt =>
     {
-        options.TokenValidationParameters = new TokenValidationParameters
+        jwt.SaveToken = true;
+        jwt.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateActor = true,
             ValidateIssuer = true,
@@ -58,9 +61,9 @@ builder.Services.AddSwaggerGen(options =>{
 
 builder.Services.AddHttpContextAccessor();
 
-builder.Services.AddTransient<IAuthService, AuthService>();
 builder.Services.AddScoped<IAcessGuardService, AcessGuardService>();
 builder.Services.AddScoped<ICheckExistingRecordService, CheckExistingRecordService>();
+builder.Services.AddTransient<IAuthService, AuthService>();
 
 var app = builder.Build();
 
@@ -77,5 +80,8 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+
+await RoleSeeder.SeedAsync(app);
 
 app.Run();
