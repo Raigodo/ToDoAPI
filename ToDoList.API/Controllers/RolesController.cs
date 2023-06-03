@@ -7,11 +7,12 @@ using System.Data;
 using System.Xml.Linq;
 using ToDoList.API.DAL;
 using ToDoList.API.Domain.Entities;
+using ToDoList.API.Domain.Roles;
 
 namespace ToDoList.API.Controllers;
 
 [Route("api/[controller]")]
-[Authorize(Roles = "ApiAdmin")]
+[Authorize(Roles = ApiUserRoles.Admin)]
 [ApiController]
 public class RolesController : ControllerBase
 {

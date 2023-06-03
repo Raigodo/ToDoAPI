@@ -37,19 +37,15 @@ public class TaskBoxesController : ControllerBase
     [HttpGet]
     [Authorize]
     [Route("GetRoot")]
-    public async Task<IActionResult> GetRoot(int boxId)
+    public async Task<IActionResult> GetRoot()
     {
-        if (!(await _existCheck.DoesBoxExistAsync(boxId)))
-            return BadRequest("Invalid Id");
-
-        if (!(await _acessCheck.IsBoxAcessibleAsync(boxId)))
-            return Unauthorized("Acess denied");
-
-
+        var userId = _userManager.GetUserId(User);
         var rootBoxes = await _dbCtx.ApiTaskBoxes
             .Include(b => b.Tasks)
             .Include(b => b.SubFolders)
-            .Where(b => b.AssociatedGroupId == boxId && b.ParrentBoxId == null)
+            .Where(b =>
+                b.AssociatedGroup.MembersInGroup.Any(gu => gu.UserId == userId) &&
+                b.ParrentBoxId == null)
             .ToListAsync();
 
         return Ok(rootBoxes);
@@ -59,17 +55,17 @@ public class TaskBoxesController : ControllerBase
     [Route("Get")]
     public async Task<IActionResult> Get(int boxId)
     {
-        if (!(await _existCheck.DoesBoxExistAsync(boxId)))
+        var box = await _dbCtx.ApiTaskBoxes
+            .Include(b => b.Tasks)
+            .Include(b => b.SubFolders)
+            .FirstOrDefaultAsync(b => b.Id == boxId);
+
+        if (box == null)
             return BadRequest("Invalid Id");
 
         if (!(await _acessCheck.IsBoxAcessibleAsync(boxId)))
             return Unauthorized("Acess denied");
 
-
-        var box = await _dbCtx.ApiTaskBoxes
-            .Include(b => b.Tasks)
-            .Include(b => b.SubFolders)
-            .FirstOrDefaultAsync(b=>b.Id == boxId);
 
         return Ok(box);
     }
@@ -79,7 +75,8 @@ public class TaskBoxesController : ControllerBase
     [Route("Create")]
     public async Task<IActionResult> Create(TaskBoxDto entityDto)
     {
-        if (!(await _existCheck.DoesGroupExistAsync(entityDto.AssociatedGroupId)))
+        if (!(await _existCheck.DoesGroupExistAsync(entityDto.AssociatedGroupId)) ||
+            entityDto.ParrentBoxId != null && !(await _existCheck.DoesBoxExistAsync((int)entityDto.ParrentBoxId)))
             return BadRequest("Invalid Id");
 
         if (!(await _acessCheck.IsGroupAcessibleAsync(entityDto.AssociatedGroupId)))
@@ -102,18 +99,14 @@ public class TaskBoxesController : ControllerBase
     [Route("Update")]
     public async Task<IActionResult> Update(int boxId, TaskBoxDto entityDto)
     {
-        if (await _existCheck.DoesBoxExistAsync(boxId) ||
-            (entityDto.ParrentBoxId != null && await _existCheck.DoesBoxExistAsync((int) entityDto.ParrentBoxId)) ||
-            !(await _existCheck.DoesGroupExistAsync(entityDto.AssociatedGroupId)))
+        var box = await _dbCtx.ApiTaskBoxes.FirstOrDefaultAsync(b => b.Id == boxId);
+        if (box == null || !(await _existCheck.DoesGroupExistAsync(entityDto.AssociatedGroupId)) ||
+            (entityDto.ParrentBoxId != null && await _existCheck.DoesBoxExistAsync((int)entityDto.ParrentBoxId)))
             return BadRequest("Invalid Id");
 
         if (!(await _acessCheck.IsGroupAcessibleAsync(entityDto.AssociatedGroupId)))
             return Unauthorized("Acess denied");
 
-
-        var box = await _dbCtx.ApiTaskBoxes.FirstOrDefaultAsync(b => b.Id == boxId);
-        if (box == null)
-            return BadRequest();
 
         box.Title = entityDto.Title;
         box.AssociatedGroupId = entityDto.AssociatedGroupId; 
@@ -128,16 +121,13 @@ public class TaskBoxesController : ControllerBase
     [Route("Delete")]
     public async Task<IActionResult> Delete(int boxId)
     {
-        if (!(await _existCheck.DoesGroupExistAsync(boxId)))
+        var box = await _dbCtx.ApiTaskBoxes.FirstOrDefaultAsync(b => b.Id == boxId);
+        if (box == null)
             return BadRequest("Invalid Id");
 
         if (await _acessCheck.IsGroupAcessibleAsync(boxId))
             return Unauthorized("Acess denied");
 
-
-        var box = await _dbCtx.ApiTaskBoxes.FirstOrDefaultAsync(b => b.Id == boxId);
-        if (box == null)
-            return BadRequest();
 
         _dbCtx.ApiTaskBoxes.Remove(box);
         await _dbCtx.SaveChangesAsync();

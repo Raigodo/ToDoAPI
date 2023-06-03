@@ -83,5 +83,6 @@ app.MapControllers();
 
 
 await RoleSeeder.SeedAsync(app);
+await AdminSeeder.SeedAsync(app);
 
 app.Run();

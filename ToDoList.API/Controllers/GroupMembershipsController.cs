@@ -5,7 +5,6 @@ using ToDoList.API.Domain.Dto;
 using ToDoList.API.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
-using System.Text.RegularExpressions;
 using ToDoList.API.Services.Check;
 
 namespace ToDoList.API.Controllers;

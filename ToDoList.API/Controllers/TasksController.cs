@@ -37,15 +37,14 @@ public class TasksController : ControllerBase
     [Route("Get")]
     public async Task<IActionResult> Get(int taskId)
     {
-        if (!(await _existCheck.DoesTaskExistAsync(taskId)))
+        var task = await _dbCtx.ApiTasks
+            .FirstOrDefaultAsync(t => t.Id == taskId);
+        if (task == null) 
             return BadRequest("Invalid Id");
 
         if (!(await _acessCheck.IsTaskAcessibleAsync(taskId)))
             return Unauthorized("Acess denied");
 
-
-        var task = await _dbCtx.ApiTasks
-            .FirstOrDefaultAsync(t => t.Id == taskId);
 
         return Ok(task);
     }
@@ -77,7 +76,12 @@ public class TasksController : ControllerBase
     [Route("Update")]
     public async Task<IActionResult> Update(int taskId, TaskDto entityDto)
     {
-        if (!(await _existCheck.DoesTaskExistAsync(taskId)) ||
+        var task = await _dbCtx.ApiTasks
+            .Include(t => t.ParrentBox)
+            .Include(t => t.ParrentBox.AssociatedGroup)
+            .FirstOrDefaultAsync(t => t.Id == taskId);
+
+        if (task == null ||
             !(await _existCheck.DoesBoxExistAsync(entityDto.ParrentBoxId)))
             return BadRequest("Invalid Id");
 
@@ -85,11 +89,6 @@ public class TasksController : ControllerBase
             !(await _acessCheck.IsBoxAcessibleAsync(entityDto.ParrentBoxId)))
             return Unauthorized("Acess denied");
 
-
-        var task = await _dbCtx.ApiTasks
-            .Include(t => t.ParrentBox)
-            .Include(t => t.ParrentBox.AssociatedGroup)
-            .FirstOrDefaultAsync(t => t.Id == taskId);
 
         task.ParrentBoxId = entityDto.ParrentBoxId;
         task.Title = entityDto.Title;
@@ -103,17 +102,17 @@ public class TasksController : ControllerBase
     [Route("Delete")]
     public async Task<IActionResult> Delete(int taskId)
     {
-        if (!(await _existCheck.DoesTaskExistAsync(taskId)))
+        var task = await _dbCtx.ApiTasks
+            .Include(t => t.ParrentBox)
+            .Include(t => t.ParrentBox.AssociatedGroup)
+            .FirstOrDefaultAsync(t => t.Id == taskId);
+
+        if (task == null)
             return BadRequest("Invalid Id");
 
         if (await _acessCheck.IsTaskAcessibleAsync(taskId))
             return Unauthorized("Acess denied");
 
-
-        var task = await _dbCtx.ApiTasks
-            .Include(t => t.ParrentBox)
-            .Include(t => t.ParrentBox.AssociatedGroup)
-            .FirstOrDefaultAsync(t => t.Id == taskId);
 
         _dbCtx.ApiTasks.Remove(task);
         await _dbCtx.SaveChangesAsync();

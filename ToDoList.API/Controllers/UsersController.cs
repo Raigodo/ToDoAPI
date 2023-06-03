@@ -6,13 +6,13 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using ToDoList.API.Services.Check;
 using ToDoList.API.Domain.Entities;
-using System.Security.Claims;
+using ToDoList.API.Domain.Roles;
 
 namespace ToDoList.API.Controllers;
 
 
 [ApiController]
-[Authorize(Roles = "ApiUser,ApiAdmin")]
+[Authorize]
 [Route("api/[controller]")]
 public class UsersController : ControllerBase
 {
@@ -33,6 +33,7 @@ public class UsersController : ControllerBase
         _existCheck = existCheck;
     }
 
+    //Users are created in AuthController
 
     [HttpGet]
     [Authorize(Roles = "ApiAdmin")]
@@ -45,8 +46,8 @@ public class UsersController : ControllerBase
 
 
     [HttpGet]
-    [Route("Get")]
-    public async Task<IActionResult> Get()
+    [Route("GetSelf")]
+    public async Task<IActionResult> GetSelf()
     {
         var userId = _userManager.GetUserId(User);
         var user = await _dbCtx.Users
@@ -61,19 +62,17 @@ public class UsersController : ControllerBase
 
 
 
-
     [HttpPatch]
     [Route("Update")]
     public async Task<IActionResult> Update(string userId, UserDto entityDto)
     {
-        if (!(await _existCheck.DoesUserExistAsync(userId)))
+        var user = await _dbCtx.Users.FirstOrDefaultAsync(u => u.Id == userId);
+        if (user == null)
             return BadRequest("Invalid Id");
 
-        if (!_acessCheck.IsUserAcessible(userId))
+        if (!(await _acessCheck.IsUserAcessibleAsync(userId)))
             return Unauthorized("Acess denied");
 
-
-        var user = await _dbCtx.Users.FirstOrDefaultAsync(u => u.Id == userId);
 
         user.Nickname = entityDto.Nickname;
 
@@ -86,14 +85,13 @@ public class UsersController : ControllerBase
     [Route("Delete")]
     public async Task<IActionResult> Delete(string userId)
     {
-        if (!(await _existCheck.DoesUserExistAsync(userId)))
+        var user = await _dbCtx.Users.FirstOrDefaultAsync(u => u.Id == userId);
+        if (user == null)
             return BadRequest("Invalid Id");
 
-        if (! _acessCheck.IsUserAcessible(userId))
+        if (!(await _acessCheck.IsUserAcessibleAsync(userId)))
             return Unauthorized("Acess denied");
 
-
-        var user = await _dbCtx.Users.FirstOrDefaultAsync(u => u.Id == userId);
 
         await _userManager.DeleteAsync(user);
         await _dbCtx.SaveChangesAsync();

@@ -12,7 +12,7 @@ namespace ToDoList.API.Controllers;
 
 
 [ApiController]
-[Authorize(Roles = "ApiUser,ApiAdmin")]
+[Authorize]
 [Route("api/[controller]")]
 public class GroupsController : ControllerBase
 {
@@ -38,17 +38,18 @@ public class GroupsController : ControllerBase
     [Route("Get")]
     public async Task<IActionResult> Get(int groupId)
     {
-        if (!(await _existCheck.DoesGroupExistAsync(groupId)))
+        var group = await _dbCtx.ApiGroups
+            .Include(g => g.MembersInGroup)
+            .Include(g => g.AcessibleBoxes)
+            //TODO include subfolders and tasks
+            .FirstOrDefaultAsync(g => g.Id == groupId);
+
+        if (group == null)
             return BadRequest("Invalid Id");
 
         if (!(await _acessCheck.IsGroupAcessibleAsync(groupId)))
             return Unauthorized("Acess denied");
 
-
-        var group = await _dbCtx.ApiGroups
-            .Include(u => u.MembersInGroup)
-            .Include(u => u.AcessibleBoxes)
-            .FirstOrDefaultAsync(g => g.Id == groupId);
 
         return Ok(group);
     }
@@ -58,7 +59,6 @@ public class GroupsController : ControllerBase
     [Route("Create")]
     public async Task<IActionResult> Create(UserGroupDto entityDto)
     {
-        var user = User;
         var group = new GroupEntity()
         {
             Title = entityDto.Title,
@@ -83,15 +83,14 @@ public class GroupsController : ControllerBase
     [Route("Update")]
     public async Task<IActionResult> Update(int groupId, UserGroupDto entityDto)
     {
-        if (!(await _existCheck.DoesGroupExistAsync(groupId)))
+        var group = await _dbCtx.ApiGroups.FirstOrDefaultAsync(g => g.Id == groupId);
+        if (group == null)
             return BadRequest("Invalid Id");
 
         if (!(await _acessCheck.IsGroupAcessibleAsync(groupId)))
             return Unauthorized("Acess denied");
 
 
-        var group = await _dbCtx.ApiGroups.FirstOrDefaultAsync(g => g.Id == groupId);
-        
         group.Title = entityDto.Title;
         group.Description = entityDto.Description;
 
@@ -104,14 +103,13 @@ public class GroupsController : ControllerBase
     [Route("Delete")]
     public async Task<IActionResult> Delete(int groupId)
     {
-        if (!(await _existCheck.DoesGroupExistAsync(groupId)))
+        var group = await _dbCtx.ApiGroups.FirstOrDefaultAsync(g => g.Id == groupId);
+        if (group == null)
             return BadRequest("Invalid Id");
 
         if (!(await _acessCheck.IsGroupAcessibleAsync(groupId)))
             return Unauthorized("Acess denied");
 
-
-        var group = _dbCtx.ApiGroups.FirstOrDefault(g => g.Id == groupId);
         
         _dbCtx.ApiGroups.Remove(group);
         await _dbCtx.SaveChangesAsync();
