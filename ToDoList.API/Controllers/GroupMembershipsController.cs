@@ -1,11 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using ToDoList.API.DAL;
 using ToDoList.API.Domain.Dto;
-using ToDoList.API.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using ToDoList.API.Services.Check;
+using ToDoList.API.DAL.Interfaces;
 
 namespace ToDoList.API.Controllers;
 
@@ -15,21 +12,21 @@ namespace ToDoList.API.Controllers;
 [Route("api/[controller]")]
 public class GroupMembershipController : ControllerBase
 {
-    private ApiDbContext _dbCtx;
-    private UserManager<UserEntity> _userManager;
     private IAcessGuardService _acessCheck;
-    private ICheckExistingRecordService _existCheck;
+    private IGroupMembershipRepository _memberRepository;
+    private IGroupRepository _groupRepository;
+    private IUserRepository _userRepository;
 
     public GroupMembershipController(
-        ApiDbContext appDbContext,
-        UserManager<UserEntity> userManager,
         IAcessGuardService acessCheck,
-        ICheckExistingRecordService existCheck)
+        IGroupMembershipRepository memberRepository,
+        IGroupRepository groupRepository,
+        IUserRepository userRepository)
     {
-        _dbCtx = appDbContext;
-        _userManager = userManager;
         _acessCheck = acessCheck;
-        _existCheck = existCheck;
+        _memberRepository = memberRepository;
+        _groupRepository = groupRepository;
+        _userRepository = userRepository;
     }
 
 
@@ -37,38 +34,33 @@ public class GroupMembershipController : ControllerBase
     [Route("GetMembers")]
     public async Task<IActionResult> GetMembers(int groupId)
     {
-        if (!(await _existCheck.DoesGroupExistAsync(groupId)))
-            return BadRequest("Invalid Id");
+        var group = await _groupRepository.GetGroupByIdAsync(groupId);
+
+        if (group == null)
+            return BadRequest("Group not found");
 
         if (!(await _acessCheck.IsGroupAcessibleAsync(groupId)))
             return Unauthorized("Acess denied");
 
-
-        var memberList = await _dbCtx.ApiGroupsUsers
-            .Where(gu => gu.GroupId == groupId)
-            .ToListAsync();
+        var memberList = await _memberRepository.GetAllGroupMembersAsync(group);
 
         return Ok(memberList);
     }
 
     [HttpPost]
     [Route("AddMember")]
-    public async Task<IActionResult> AddMember(GroupMemberDto entityDto)
+    public async Task<IActionResult> AddMember(GroupMemberDto memberDto)
     {
-        if (!(await _existCheck.DoesGroupMemberExistAsync(userId: entityDto.UserId, groupId: entityDto.GroupId)))
-            return BadRequest("Invalid Id");
+        var user = await _userRepository.GetUserByIdAsync(memberDto.UserId);
+        var group = await _groupRepository.GetGroupByIdAsync(memberDto.GroupId);
 
-        if (!(await _acessCheck.IsGroupMemberAcessibleAsync(userId: entityDto.UserId, groupId: entityDto.GroupId)))
+        if (user == null) return BadRequest("User not found");
+        if (group == null) return BadRequest("Group not found");
+
+        if (!await _acessCheck.IsGroupAcessibleAsync(memberDto.GroupId))
             return Unauthorized("Acess denied");
 
-
-        var member = new GroupsUsersEntity()
-        {
-            UserId = entityDto.UserId,
-            GroupId = entityDto.GroupId,
-        }; 
-        await _dbCtx.ApiGroupsUsers.AddAsync(member);
-        await _dbCtx.SaveChangesAsync();
+        var member = await _memberRepository.AddMemberAsync(user, group);
 
         return CreatedAtAction("GetMembers", new { member.GroupId }, member);
     }
@@ -77,19 +69,17 @@ public class GroupMembershipController : ControllerBase
     [Route("Update")]
     public async Task<IActionResult> Update(GroupMemberDto entityDto)//currently useless
     {
-        if (!(await _existCheck.DoesGroupMemberExistAsync(userId: entityDto.UserId, groupId: entityDto.GroupId)))
-            return BadRequest("Invalid Id");
+        var user = await _userRepository.GetUserByIdAsync(entityDto.UserId);
+        var group = await _groupRepository.GetGroupByIdAsync(entityDto.GroupId);
+        if (user == null || group == null) return BadRequest("Member not found");
 
-        if (!(await _acessCheck.IsGroupMemberAcessibleAsync(userId: entityDto.UserId, groupId: entityDto.GroupId)))
+        var member = await _memberRepository.GetMemberAsync(user, group);
+        if ( member == null) return BadRequest("Member not found");
+
+        if (!(await _acessCheck.IsGroupMemberAcessibleAsync(entityDto.UserId, entityDto.GroupId)))
             return Unauthorized("Acess denied");
 
-
-        var groupUser = await _dbCtx.ApiGroupsUsers.FirstOrDefaultAsync(g => g.UserId == entityDto.UserId && g.GroupId == entityDto.GroupId);
-
-        groupUser.GroupId = entityDto.GroupId;
-        groupUser.UserId = entityDto.UserId;
-
-        await _dbCtx.SaveChangesAsync();
+        await _memberRepository.UpdateMemberAsync(member, entityDto);
         return NoContent();
     }
 
@@ -98,17 +88,17 @@ public class GroupMembershipController : ControllerBase
     [Route("Delete")]
     public async Task<IActionResult> Delete(string userId, int groupId)
     {
-        if (!(await _existCheck.DoesGroupMemberExistAsync(userId: userId, groupId: groupId)))
-            return BadRequest("Invalid Id");
+        var user = await _userRepository.GetUserByIdAsync(userId);
+        var group = await _groupRepository.GetGroupByIdAsync(groupId);
+        if (user == null || group == null) return BadRequest("Member not found");
+
+        var member = await _memberRepository.GetMemberAsync(user, group);
+        if (member == null) return BadRequest("Member not found");
 
         if (!(await _acessCheck.IsGroupMemberAcessibleAsync(userId: userId, groupId: groupId)))
             return Unauthorized("Acess denied");
 
-
-        var groupUser = _dbCtx.ApiGroupsUsers.FirstOrDefault(gu => gu.UserId == userId && gu.GroupId == groupId);
-
-        _dbCtx.ApiGroupsUsers.Remove(groupUser);
-        await _dbCtx.SaveChangesAsync();
+        await _memberRepository.RemoveGroupMemberAsync(member);
         return NoContent();
     }
 }

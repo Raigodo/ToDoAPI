@@ -5,9 +5,9 @@ using ToDoList.API.Domain.Dto;
 using ToDoList.API.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
-using System.Text.RegularExpressions;
 using ToDoList.API.Services.Check;
-using System.Threading.Tasks;
+using ToDoList.API.DAL.Interfaces;
+using ToDoList.API.DAL.Repositories;
 
 namespace ToDoList.API.Controllers;
 
@@ -17,36 +17,37 @@ namespace ToDoList.API.Controllers;
 [Route("api/[controller]")]
 public class TaskBoxesController : ControllerBase
 {
-    private ApiDbContext _dbCtx;
-    private UserManager<UserEntity> _userManager;
     private IAcessGuardService _acessCheck;
     private ICheckExistingRecordService _existCheck;
+    private ITaskBoxRepository _taskBoxRepository;
+    private IGroupRepository _groupRepository;
 
     public TaskBoxesController(
-        ApiDbContext appDbContext,
-        UserManager<UserEntity> userManager,
         IAcessGuardService acessCheck,
-        ICheckExistingRecordService existCheck)
+        ICheckExistingRecordService existCheck,
+        ITaskBoxRepository taskBoxRepository,
+        IGroupRepository groupRepository)
     {
-        _dbCtx = appDbContext;
-        _userManager = userManager;
         _acessCheck = acessCheck;
         _existCheck = existCheck;
+        _taskBoxRepository = taskBoxRepository;
+        _groupRepository = groupRepository;
     }
 
     [HttpGet]
     [Authorize]
-    [Route("GetRoot")]
-    public async Task<IActionResult> GetRoot()
+    [Route("GetFoldersInGroup")]
+    public async Task<IActionResult> GetFoldersInGroup(int groupId)
     {
-        var userId = _userManager.GetUserId(User);
-        var rootBoxes = await _dbCtx.ApiTaskBoxes
-            .Include(b => b.Tasks)
-            .Include(b => b.SubFolders)
-            .Where(b =>
-                b.AssociatedGroup.MembersInGroup.Any(gu => gu.UserId == userId) &&
-                b.ParrentBoxId == null)
-            .ToListAsync();
+        var group = await _groupRepository.GetGroupByIdAsync(groupId);
+
+        if (group == null)
+            return BadRequest("Group not found");
+
+        if (!await _acessCheck.IsGroupAcessibleAsync(groupId))
+            return Unauthorized("Acess denied");
+
+        var rootBoxes = await _taskBoxRepository.GetGroupRootTaskBoxesAsync(group);
 
         return Ok(rootBoxes);
     }
@@ -55,17 +56,13 @@ public class TaskBoxesController : ControllerBase
     [Route("Get")]
     public async Task<IActionResult> Get(int boxId)
     {
-        var box = await _dbCtx.ApiTaskBoxes
-            .Include(b => b.Tasks)
-            .Include(b => b.SubFolders)
-            .FirstOrDefaultAsync(b => b.Id == boxId);
+        var box = await _taskBoxRepository.GetTaskBoxByIdAsync(boxId);
 
         if (box == null)
-            return BadRequest("Invalid Id");
+            return BadRequest("Task box not found");
 
         if (!(await _acessCheck.IsBoxAcessibleAsync(boxId)))
             return Unauthorized("Acess denied");
-
 
         return Ok(box);
     }
@@ -75,22 +72,16 @@ public class TaskBoxesController : ControllerBase
     [Route("Create")]
     public async Task<IActionResult> Create(TaskBoxDto entityDto)
     {
-        if (!(await _existCheck.DoesGroupExistAsync(entityDto.AssociatedGroupId)) ||
-            entityDto.ParrentBoxId != null && !(await _existCheck.DoesBoxExistAsync((int)entityDto.ParrentBoxId)))
-            return BadRequest("Invalid Id");
+        if (!await _existCheck.DoesGroupExistAsync(entityDto.AssociatedGroupId))
+            return BadRequest("Group not found");
+
+        if (entityDto.ParrentBoxId != null && !await _existCheck.DoesBoxExistAsync((int)entityDto.ParrentBoxId))
+            return BadRequest("Parrent task box not found");
 
         if (!(await _acessCheck.IsGroupAcessibleAsync(entityDto.AssociatedGroupId)))
             return Unauthorized("Acess denied");
 
-
-        var entity = new TaskBoxEntity()
-        {
-            AssociatedGroupId = entityDto.AssociatedGroupId,
-            ParrentBoxId = entityDto.ParrentBoxId,
-            Title = entityDto.Title,
-        };
-        await _dbCtx.ApiTaskBoxes.AddAsync(entity);
-        await _dbCtx.SaveChangesAsync();
+        var entity = await _taskBoxRepository.CreateTaskBoxAsync(entityDto);
         return CreatedAtAction("Get", new { entity.Id }, entity);
     }
     
@@ -99,20 +90,21 @@ public class TaskBoxesController : ControllerBase
     [Route("Update")]
     public async Task<IActionResult> Update(int boxId, TaskBoxDto entityDto)
     {
-        var box = await _dbCtx.ApiTaskBoxes.FirstOrDefaultAsync(b => b.Id == boxId);
-        if (box == null || !(await _existCheck.DoesGroupExistAsync(entityDto.AssociatedGroupId)) ||
-            (entityDto.ParrentBoxId != null && await _existCheck.DoesBoxExistAsync((int)entityDto.ParrentBoxId)))
-            return BadRequest("Invalid Id");
+        var box = await _taskBoxRepository.GetTaskBoxByIdAsync(boxId);
+
+        if (box == null)
+            return BadRequest("Task box not found");
+
+        if (!await _existCheck.DoesGroupExistAsync(entityDto.AssociatedGroupId))
+            return BadRequest("Group not found");
+
+        if (entityDto.ParrentBoxId != null && await _existCheck.DoesBoxExistAsync((int)entityDto.ParrentBoxId))
+            return BadRequest("Parrent task box not found");
 
         if (!(await _acessCheck.IsGroupAcessibleAsync(entityDto.AssociatedGroupId)))
             return Unauthorized("Acess denied");
 
-
-        box.Title = entityDto.Title;
-        box.AssociatedGroupId = entityDto.AssociatedGroupId; 
-        box.ParrentBoxId = entityDto.ParrentBoxId;
-
-        await _dbCtx.SaveChangesAsync();
+        await _taskBoxRepository.UpdateTaskBoxAsync(box, entityDto);
         return NoContent();
     }
     
@@ -121,16 +113,15 @@ public class TaskBoxesController : ControllerBase
     [Route("Delete")]
     public async Task<IActionResult> Delete(int boxId)
     {
-        var box = await _dbCtx.ApiTaskBoxes.FirstOrDefaultAsync(b => b.Id == boxId);
+        var box = await _taskBoxRepository.GetTaskBoxByIdAsync(boxId);
+
         if (box == null)
-            return BadRequest("Invalid Id");
+            return BadRequest("Task box not found");
 
         if (await _acessCheck.IsGroupAcessibleAsync(boxId))
             return Unauthorized("Acess denied");
 
-
-        _dbCtx.ApiTaskBoxes.Remove(box);
-        await _dbCtx.SaveChangesAsync();
+        await _taskBoxRepository.DeleteTaskBoxAsync(box);
         return NoContent();
     }
 }

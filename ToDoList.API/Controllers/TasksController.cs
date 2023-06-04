@@ -1,50 +1,42 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using ToDoList.API.DAL;
 using ToDoList.API.Domain.Dto;
-using ToDoList.API.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
-using System.Threading.Tasks;
 using ToDoList.API.Services.Check;
+using ToDoList.API.DAL.Interfaces;
 
 namespace ToDoList.API.Controllers;
 
 
 [ApiController]
-[Authorize(Roles = "ApiUser,ApiAdmin")]
+[Authorize]
 [Route("api/[controller]")]
 public class TasksController : ControllerBase
 {
-    private ApiDbContext _dbCtx;
-    private UserManager<UserEntity> _userManager;
     private IAcessGuardService _acessCheck;
     private ICheckExistingRecordService _existCheck;
+    private ITaskRepository _taskRepository;
 
     public TasksController(
-        ApiDbContext appDbContext,
-        UserManager<UserEntity> userManager,
         IAcessGuardService acessCheck,
-        ICheckExistingRecordService existCheck)
+        ICheckExistingRecordService existCheck,
+        ITaskRepository taskRepository)
     {
-        _dbCtx = appDbContext;
-        _userManager = userManager;
         _acessCheck = acessCheck;
         _existCheck = existCheck;
+        _taskRepository = taskRepository;
     }
 
     [HttpGet]
-    [Route("Get")]
-    public async Task<IActionResult> Get(int taskId)
+    [Route("ViewTask")]
+    public async Task<IActionResult> ViewTask(int taskId)
     {
-        var task = await _dbCtx.ApiTasks
-            .FirstOrDefaultAsync(t => t.Id == taskId);
+        var task = _taskRepository.GetTaskByIdAsync(taskId);
         if (task == null) 
-            return BadRequest("Invalid Id");
+            return BadRequest("Task not found");
 
-        if (!(await _acessCheck.IsTaskAcessibleAsync(taskId)))
+        if (!await _acessCheck.IsTaskAcessibleAsync(taskId))
             return Unauthorized("Acess denied");
-
 
         return Ok(task);
     }
@@ -53,48 +45,33 @@ public class TasksController : ControllerBase
     [Route("Create")]
     public async Task<IActionResult> Create(TaskDto entityDto)
     {
-        if (!(await _existCheck.DoesBoxExistAsync(entityDto.ParrentBoxId)))
-            return BadRequest("Invalid Id");
+        if (!await _existCheck.DoesBoxExistAsync(entityDto.ParrentBoxId))
+            return BadRequest("Task box not found");
 
-        if (!(await _acessCheck.IsBoxAcessibleAsync(entityDto.ParrentBoxId)))
+        if (!await _acessCheck.IsBoxAcessibleAsync(entityDto.ParrentBoxId))
             return Unauthorized("Acess denied");
 
+        var entity = await _taskRepository.CreateTaskAsync(entityDto);
 
-        var entity = new TaskEntity()
-        {
-            Title = entityDto.Title,
-            Description = entityDto.Description,
-            ParrentBoxId = entityDto.ParrentBoxId,
-        };
-        await _dbCtx.ApiTasks.AddAsync(entity);
-        await _dbCtx.SaveChangesAsync();
-
-        return CreatedAtAction("Get", new { entity.Id }, entity);
+        return CreatedAtAction("ViewTask", new { entity.Id }, entity);
     }
 
     [HttpPatch]
     [Route("Update")]
     public async Task<IActionResult> Update(int taskId, TaskDto entityDto)
     {
-        var task = await _dbCtx.ApiTasks
-            .Include(t => t.ParrentBox)
-            .Include(t => t.ParrentBox.AssociatedGroup)
-            .FirstOrDefaultAsync(t => t.Id == taskId);
+        var task = await _taskRepository.GetTaskByIdAsync(taskId);
 
-        if (task == null ||
-            !(await _existCheck.DoesBoxExistAsync(entityDto.ParrentBoxId)))
-            return BadRequest("Invalid Id");
+        if (task == null)
+            return BadRequest("Task not found");
 
-        if (!(await _acessCheck.IsTaskAcessibleAsync(taskId)) ||
-            !(await _acessCheck.IsBoxAcessibleAsync(entityDto.ParrentBoxId)))
+        if (!await _existCheck.DoesBoxExistAsync(entityDto.ParrentBoxId))
+                return BadRequest("Task box not found");
+
+        if (!await _acessCheck.IsBoxAcessibleAsync(entityDto.ParrentBoxId))
             return Unauthorized("Acess denied");
 
-
-        task.ParrentBoxId = entityDto.ParrentBoxId;
-        task.Title = entityDto.Title;
-        task.Description = entityDto.Description;
-
-        await _dbCtx.SaveChangesAsync();
+        await _taskRepository.UpdateTaskAsync(task, entityDto);
         return NoContent();
     }
 
@@ -102,20 +79,15 @@ public class TasksController : ControllerBase
     [Route("Delete")]
     public async Task<IActionResult> Delete(int taskId)
     {
-        var task = await _dbCtx.ApiTasks
-            .Include(t => t.ParrentBox)
-            .Include(t => t.ParrentBox.AssociatedGroup)
-            .FirstOrDefaultAsync(t => t.Id == taskId);
+        var task = await _taskRepository.GetTaskByIdAsync(taskId);
 
         if (task == null)
-            return BadRequest("Invalid Id");
+            return BadRequest("Task not found");
 
         if (await _acessCheck.IsTaskAcessibleAsync(taskId))
             return Unauthorized("Acess denied");
 
-
-        _dbCtx.ApiTasks.Remove(task);
-        await _dbCtx.SaveChangesAsync();
+        var result = _taskRepository.DeleteTaskAsync(task);
         return NoContent();
     }
 }

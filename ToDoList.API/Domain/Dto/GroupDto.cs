@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace ToDoList.API.Domain.Dto;
 
-public class UserGroupDto
+public class GroupDto
 {
     [Required]
     public string Title { get; set; }

@@ -1,12 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using ToDoList.API.DAL;
 using ToDoList.API.Domain.Dto;
-using ToDoList.API.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using ToDoList.API.Services.Check;
-using ToDoList.API.Domain.Roles;
+using ToDoList.API.DAL.Interfaces;
 
 namespace ToDoList.API.Controllers;
 
@@ -16,21 +12,15 @@ namespace ToDoList.API.Controllers;
 [Route("api/[controller]")]
 public class GroupsController : ControllerBase
 {
-    private ApiDbContext _dbCtx;
-    private UserManager<UserEntity> _userManager;
     private IAcessGuardService _acessCheck;
-    private ICheckExistingRecordService _existCheck;
+    private IGroupRepository _groupRepository;
 
     public GroupsController(
-        ApiDbContext appDbContext,
-        UserManager<UserEntity> userManager,
         IAcessGuardService acessCheck,
-        ICheckExistingRecordService existCheck)
+        IGroupRepository groupRepository)
     {
-        _dbCtx = appDbContext;
-        _userManager = userManager;
         _acessCheck = acessCheck;
-        _existCheck = existCheck;
+        _groupRepository = groupRepository;
     }
 
 
@@ -38,18 +28,13 @@ public class GroupsController : ControllerBase
     [Route("Get")]
     public async Task<IActionResult> Get(int groupId)
     {
-        var group = await _dbCtx.ApiGroups
-            .Include(g => g.MembersInGroup)
-            .Include(g => g.AcessibleBoxes)
-            //TODO include subfolders and tasks
-            .FirstOrDefaultAsync(g => g.Id == groupId);
+        var group = _groupRepository.GetGroupByIdAsync(groupId);
 
         if (group == null)
-            return BadRequest("Invalid Id");
+            return BadRequest("Group not found");
 
         if (!(await _acessCheck.IsGroupAcessibleAsync(groupId)))
             return Unauthorized("Acess denied");
-
 
         return Ok(group);
     }
@@ -57,23 +42,9 @@ public class GroupsController : ControllerBase
 
     [HttpPost]
     [Route("Create")]
-    public async Task<IActionResult> Create(UserGroupDto entityDto)
+    public async Task<IActionResult> Create(GroupDto entityDto)
     {
-        var group = new GroupEntity()
-        {
-            Title = entityDto.Title,
-            Description = entityDto.Description
-        };
-        await _dbCtx.ApiGroups.AddAsync(group);
-        await _dbCtx.SaveChangesAsync();
-
-        var groupMember = new GroupsUsersEntity {
-            UserId = _userManager.GetUserId(User),
-            GroupId = group.Id,
-            Role = GroupMemberRoles.Admin,
-        };
-        await _dbCtx.ApiGroupsUsers.AddAsync(groupMember);
-        await _dbCtx.SaveChangesAsync();
+        var group = await _groupRepository.CreateGroupAsync(entityDto);
 
         return CreatedAtAction("Get", new { group.Id }, group);
     }
@@ -81,20 +52,17 @@ public class GroupsController : ControllerBase
 
     [HttpPatch]
     [Route("Update")]
-    public async Task<IActionResult> Update(int groupId, UserGroupDto entityDto)
+    public async Task<IActionResult> Update(int groupId, GroupDto entityDto)
     {
-        var group = await _dbCtx.ApiGroups.FirstOrDefaultAsync(g => g.Id == groupId);
+        var group = await _groupRepository.GetGroupByIdAsync(groupId);
+
         if (group == null)
-            return BadRequest("Invalid Id");
+            return BadRequest("Group not found");
 
         if (!(await _acessCheck.IsGroupAcessibleAsync(groupId)))
             return Unauthorized("Acess denied");
 
-
-        group.Title = entityDto.Title;
-        group.Description = entityDto.Description;
-
-        await _dbCtx.SaveChangesAsync();
+        await _groupRepository.UpdateGroupAsync(group, entityDto);
         return NoContent();
     }
 
@@ -103,16 +71,15 @@ public class GroupsController : ControllerBase
     [Route("Delete")]
     public async Task<IActionResult> Delete(int groupId)
     {
-        var group = await _dbCtx.ApiGroups.FirstOrDefaultAsync(g => g.Id == groupId);
+        var group = await _groupRepository.GetGroupByIdAsync(groupId);
+
         if (group == null)
-            return BadRequest("Invalid Id");
+            return BadRequest("Group not found");
 
         if (!(await _acessCheck.IsGroupAcessibleAsync(groupId)))
             return Unauthorized("Acess denied");
 
-        
-        _dbCtx.ApiGroups.Remove(group);
-        await _dbCtx.SaveChangesAsync();
+        await _groupRepository.DeleteGroupAsync(group);
         return NoContent();
     }
 }

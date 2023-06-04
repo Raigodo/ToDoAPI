@@ -16,17 +16,13 @@ namespace ToDoList.API.Controllers;
 [ApiController]
 public class RolesController : ControllerBase
 {
-    private ApiDbContext _dbCtx;
     private UserManager<UserEntity> _userManager;
     private RoleManager<IdentityRole> _roleManager;
 
     public RolesController(
-        ApiDbContext dbCtx,
         UserManager<UserEntity> userManager,
-        RoleManager<IdentityRole> roleManager
-        )
+        RoleManager<IdentityRole> roleManager)
     {
-        _dbCtx = dbCtx;
         _userManager = userManager;
         _roleManager = roleManager;
     }
@@ -42,19 +38,17 @@ public class RolesController : ControllerBase
 
     [HttpPost]
     [Route("AddRole")]
-    public async Task<IActionResult> AddRole(string name)
+    public async Task<IActionResult> AddRole(string roleName)
     {
-        var doesRoleExist = await _roleManager.RoleExistsAsync(name);
+        var doesRoleExist = await _roleManager.RoleExistsAsync(roleName);
 
         if (doesRoleExist)
             return BadRequest("Role already exist");
 
-        var roleResult = await _roleManager.CreateAsync(new IdentityRole(name));
+        var roleResult = await _roleManager.CreateAsync(new IdentityRole(roleName));
 
         if (roleResult.Succeeded)
-        {
-            return CreatedAtAction("GetAllRoles", new { }, name);
-        }
+            return CreatedAtAction("GetAllRoles", null, roleName);
         
         return BadRequest("Something went wrong");
     }

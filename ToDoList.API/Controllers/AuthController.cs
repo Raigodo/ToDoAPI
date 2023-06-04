@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using System.Diagnostics;
+﻿using Microsoft.AspNetCore.Mvc;
 using ToDoList.API.Domain.AccountDto;
 using ToDoList.API.Services.Auth;
 
@@ -38,8 +36,8 @@ public class AuthController : ControllerBase
         var result = await _authService.Register(registerDto);
 
         if (!result)
-            return BadRequest("registration failed");
+            return BadRequest("Registration failed");
 
-        return Ok("sucess");
+        return Ok("User registered sucesfully");
     }
 }

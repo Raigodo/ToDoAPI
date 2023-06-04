@@ -1,46 +1,40 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using ToDoList.API.DAL;
 using ToDoList.API.Domain.Dto;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using ToDoList.API.Services.Check;
 using ToDoList.API.Domain.Entities;
+using ToDoList.API.DAL.Interfaces;
 using ToDoList.API.Domain.Roles;
 
 namespace ToDoList.API.Controllers;
 
 
+//NOTICE Users are created in AuthController
 [ApiController]
 [Authorize]
 [Route("api/[controller]")]
 public class UsersController : ControllerBase
 {
-    private ApiDbContext _dbCtx;
-    private UserManager<UserEntity> _userManager;
     private IAcessGuardService _acessCheck;
-    private ICheckExistingRecordService _existCheck;
+    private IUserRepository _userRepository;
 
     public UsersController(
-        ApiDbContext appDbContext, 
-        UserManager<UserEntity> userManager,
         IAcessGuardService acessCheck,
-        ICheckExistingRecordService existCheck)
+        IUserRepository userRepository)
     {
-        _dbCtx = appDbContext;
-        _userManager = userManager;
         _acessCheck = acessCheck;
-        _existCheck = existCheck;
+        _userRepository = userRepository;
     }
 
-    //Users are created in AuthController
 
     [HttpGet]
-    [Authorize(Roles = "ApiAdmin")]
+    [Authorize(Roles = ApiUserRoles.Admin)]
     [Route("GetAll")]
     public async Task<IActionResult> GetAll()
     {
-        var users = await _userManager.Users.ToListAsync();
+        var users = await _userRepository.GetAllUsersAsync();
         return Ok(users);
     }
 
@@ -49,10 +43,7 @@ public class UsersController : ControllerBase
     [Route("GetSelf")]
     public async Task<IActionResult> GetSelf()
     {
-        var userId = _userManager.GetUserId(User);
-        var user = await _dbCtx.Users
-            .Include(u => u.GroupMemberships)
-            .FirstOrDefaultAsync(u => u.Id == userId);
+        var user = await _userRepository.GetCurrentUserAsync();
 
         if (user == null) 
             return StatusCode(StatusCodes.Status500InternalServerError, "Unexpected error");
@@ -61,22 +52,36 @@ public class UsersController : ControllerBase
     }
 
 
+    [HttpGet]
+    [Route("ViewUser")]
+    public async Task<IActionResult> ViewUser(string userId)
+    {
+        var user = await _userRepository.GetUserByIdAsync(userId);
+
+        if (user == null)
+            return NotFound("User not found");
+
+        return Ok(new { 
+            user.Nickname,
+            user.GroupMemberships
+        });
+    }
+
 
     [HttpPatch]
     [Route("Update")]
     public async Task<IActionResult> Update(string userId, UserDto entityDto)
     {
-        var user = await _dbCtx.Users.FirstOrDefaultAsync(u => u.Id == userId);
+        var user = await _userRepository.GetUserByIdAsync(userId);
+
         if (user == null)
-            return BadRequest("Invalid Id");
+            return BadRequest("user not found");
 
         if (!(await _acessCheck.IsUserAcessibleAsync(userId)))
             return Unauthorized("Acess denied");
 
 
-        user.Nickname = entityDto.Nickname;
-
-        await _dbCtx.SaveChangesAsync();
+        var result = await _userRepository.UpdateUserAsync(user, entityDto);
         return NoContent();
     }
 
@@ -85,19 +90,15 @@ public class UsersController : ControllerBase
     [Route("Delete")]
     public async Task<IActionResult> Delete(string userId)
     {
-        var user = await _dbCtx.Users.FirstOrDefaultAsync(u => u.Id == userId);
+        var user = await _userRepository.GetUserByIdAsync(userId);
+
         if (user == null)
-            return BadRequest("Invalid Id");
+            return BadRequest("User not found");
 
         if (!(await _acessCheck.IsUserAcessibleAsync(userId)))
             return Unauthorized("Acess denied");
 
-
-        await _userManager.DeleteAsync(user);
-        await _dbCtx.SaveChangesAsync();
+        await _userRepository.DeleteUserAsync(user);
         return NoContent();
     }
-
-
-    
 }
