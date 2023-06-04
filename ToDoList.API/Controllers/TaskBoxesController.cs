@@ -8,12 +8,13 @@ using Microsoft.AspNetCore.Identity;
 using ToDoList.API.Services.Check;
 using ToDoList.API.DAL.Interfaces;
 using ToDoList.API.DAL.Repositories;
+using ToDoList.API.Domain.Roles;
 
 namespace ToDoList.API.Controllers;
 
 
 [ApiController]
-[Authorize(Roles = "ApiUser,ApiAdmin")]
+[Authorize]
 [Route("api/[controller]")]
 public class TaskBoxesController : ControllerBase
 {
@@ -34,10 +35,19 @@ public class TaskBoxesController : ControllerBase
         _groupRepository = groupRepository;
     }
 
+
     [HttpGet]
-    [Authorize]
-    [Route("GetFoldersInGroup")]
-    public async Task<IActionResult> GetFoldersInGroup(int groupId)
+    [Authorize(ApiUserRoles.Admin)]
+    [Route("GetAll")]
+    public async Task<IActionResult> GetAll()
+    {
+        return Ok(await _groupRepository.GetAllGroupsAsync());
+    }
+
+
+    [HttpGet]
+    [Route("GetGroupRootBoxes")]
+    public async Task<IActionResult> GetGroupRootBoxes(int groupId)
     {
         var group = await _groupRepository.GetGroupByIdAsync(groupId);
 
@@ -67,7 +77,7 @@ public class TaskBoxesController : ControllerBase
         return Ok(box);
     }
 
-    
+
     [HttpPost]
     [Route("Create")]
     public async Task<IActionResult> Create(TaskBoxDto entityDto)
@@ -78,7 +88,7 @@ public class TaskBoxesController : ControllerBase
         if (entityDto.ParrentBoxId != null && !await _existCheck.DoesBoxExistAsync((int)entityDto.ParrentBoxId))
             return BadRequest("Parrent task box not found");
 
-        if (!(await _acessCheck.IsGroupAcessibleAsync(entityDto.AssociatedGroupId)))
+        if (!(await _acessCheck.IsGroupAcessibleAsync(entityDto.AssociatedGroupId, true)))
             return Unauthorized("Acess denied");
 
         var entity = await _taskBoxRepository.CreateTaskBoxAsync(entityDto);
@@ -101,7 +111,7 @@ public class TaskBoxesController : ControllerBase
         if (entityDto.ParrentBoxId != null && await _existCheck.DoesBoxExistAsync((int)entityDto.ParrentBoxId))
             return BadRequest("Parrent task box not found");
 
-        if (!(await _acessCheck.IsGroupAcessibleAsync(entityDto.AssociatedGroupId)))
+        if (!(await _acessCheck.IsGroupAcessibleAsync(entityDto.AssociatedGroupId, true)))
             return Unauthorized("Acess denied");
 
         await _taskBoxRepository.UpdateTaskBoxAsync(box, entityDto);
@@ -118,7 +128,7 @@ public class TaskBoxesController : ControllerBase
         if (box == null)
             return BadRequest("Task box not found");
 
-        if (await _acessCheck.IsGroupAcessibleAsync(boxId))
+        if (await _acessCheck.IsGroupAcessibleAsync(boxId, true))
             return Unauthorized("Acess denied");
 
         await _taskBoxRepository.DeleteTaskBoxAsync(box);

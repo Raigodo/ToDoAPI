@@ -48,7 +48,7 @@ public class TasksController : ControllerBase
         if (!await _existCheck.DoesBoxExistAsync(entityDto.ParrentBoxId))
             return BadRequest("Task box not found");
 
-        if (!await _acessCheck.IsBoxAcessibleAsync(entityDto.ParrentBoxId))
+        if (!await _acessCheck.IsBoxAcessibleAsync(entityDto.ParrentBoxId, true))
             return Unauthorized("Acess denied");
 
         var entity = await _taskRepository.CreateTaskAsync(entityDto);
@@ -68,7 +68,7 @@ public class TasksController : ControllerBase
         if (!await _existCheck.DoesBoxExistAsync(entityDto.ParrentBoxId))
                 return BadRequest("Task box not found");
 
-        if (!await _acessCheck.IsBoxAcessibleAsync(entityDto.ParrentBoxId))
+        if (!await _acessCheck.IsBoxAcessibleAsync(entityDto.ParrentBoxId, true))
             return Unauthorized("Acess denied");
 
         await _taskRepository.UpdateTaskAsync(task, entityDto);
@@ -84,7 +84,7 @@ public class TasksController : ControllerBase
         if (task == null)
             return BadRequest("Task not found");
 
-        if (await _acessCheck.IsTaskAcessibleAsync(taskId))
+        if (await _acessCheck.IsTaskAcessibleAsync(taskId, true))
             return Unauthorized("Acess denied");
 
         var result = _taskRepository.DeleteTaskAsync(task);

@@ -28,7 +28,7 @@ public class GroupsController : ControllerBase
     [Route("Get")]
     public async Task<IActionResult> Get(int groupId)
     {
-        var group = _groupRepository.GetGroupByIdAsync(groupId);
+        var group = await _groupRepository.GetGroupByIdAsync(groupId);
 
         if (group == null)
             return BadRequest("Group not found");
@@ -59,7 +59,7 @@ public class GroupsController : ControllerBase
         if (group == null)
             return BadRequest("Group not found");
 
-        if (!(await _acessCheck.IsGroupAcessibleAsync(groupId)))
+        if (!(await _acessCheck.IsGroupAcessibleAsync(groupId, true)))
             return Unauthorized("Acess denied");
 
         await _groupRepository.UpdateGroupAsync(group, entityDto);
@@ -76,7 +76,7 @@ public class GroupsController : ControllerBase
         if (group == null)
             return BadRequest("Group not found");
 
-        if (!(await _acessCheck.IsGroupAcessibleAsync(groupId)))
+        if (!(await _acessCheck.IsGroupAcessibleAsync(groupId, true)))
             return Unauthorized("Acess denied");
 
         await _groupRepository.DeleteGroupAsync(group);

@@ -32,57 +32,93 @@ namespace ToDoList.API.Services.Check
             return isSelfAction || await IsUserApiAdmin();
         }
 
-        public async Task<bool> IsGroupAcessibleAsync(int groupId)
+        public async Task<bool> IsGroupAcessibleAsync(int groupId, bool groupAdminRightRequired = false)
         {
             var accountId = _userManager.GetUserId(_httpCtx.HttpContext?.User);
             if (await IsUserApiAdmin())
                 return true;
+
+            if (groupAdminRightRequired)
+                return await _dbCtx.ApiGroups
+                .Include(g => g.MembersInGroup)
+                .AnyAsync(gu =>
+                    gu.Id == groupId &&
+                    gu.MembersInGroup.Any(gu => 
+                        gu.User.Id == accountId &&
+                        gu.Role == GroupMemberRoles.Admin));
 
             return await _dbCtx.ApiGroups
                 .Include(g => g.MembersInGroup)
                 .AnyAsync(gu =>
                     gu.Id == groupId &&
-                    gu.MembersInGroup.Any(gu => gu.User.Id == accountId));
+                    gu.MembersInGroup.Any(gu => 
+                        gu.User.Id == accountId));
         }
 
-        public async Task<bool> IsTaskAcessibleAsync(int taskId)
+        public async Task<bool> IsTaskAcessibleAsync(int taskId, bool groupAdminRightRequired = false)
         {
             var accountId = _userManager.GetUserId(_httpCtx.HttpContext?.User);
             if (await IsUserApiAdmin())
                 return true;
+
+            if (groupAdminRightRequired)
+                return await _dbCtx.ApiTasks
+                    .Include(t => t.ParrentBox.AssociatedGroup.MembersInGroup)
+                    .AnyAsync(t =>
+                        t.Id == taskId
+                        && t.ParrentBox.AssociatedGroup.MembersInGroup.Any(gu => 
+                            gu.UserId == accountId &&
+                            gu.Role == GroupMemberRoles.Admin));
 
             return await _dbCtx.ApiTasks
                 .Include(t => t.ParrentBox.AssociatedGroup.MembersInGroup)
                 .AnyAsync(t =>
                     t.Id == taskId
-                    && t.ParrentBox.AssociatedGroup.MembersInGroup.Any(gu => gu.UserId == accountId));
+                    && t.ParrentBox.AssociatedGroup.MembersInGroup.Any(gu => 
+                        gu.UserId == accountId));
         }
 
-        public async Task<bool> IsBoxAcessibleAsync(int boxId)
+        public async Task<bool> IsBoxAcessibleAsync(int boxId, bool groupAdminRightRequired = false)
         {
             var accountId = _userManager.GetUserId(_httpCtx.HttpContext?.User);
             if (await IsUserApiAdmin())
                 return true;
 
+            if (groupAdminRightRequired)
+                return await _dbCtx.ApiTaskBoxes
+                    .Include(b => b.AssociatedGroup.MembersInGroup)
+                    .AnyAsync(b =>
+                        b.Id == boxId
+                        && b.AssociatedGroup.MembersInGroup.Any(gu => 
+                            gu.UserId == accountId &&
+                            gu.Role == GroupMemberRoles.Admin));
+
             return await _dbCtx.ApiTaskBoxes
                 .Include(b => b.AssociatedGroup.MembersInGroup)
                 .AnyAsync(b =>
                     b.Id == boxId
-                    && b.AssociatedGroup.MembersInGroup.Any(gu => gu.UserId == accountId));
+                    && b.AssociatedGroup.MembersInGroup.Any(gu => 
+                        gu.UserId == accountId));
         }
 
-        public async Task<bool> IsGroupMemberAcessibleAsync(string targetUserId, int targetGroupId)
+        public async Task<bool> IsGroupMemberAcessibleAsync(string targetUserId, int targetGroupId, bool groupAdminRightRequired = false)
         {
             var userId = _userManager.GetUserId(_httpCtx.HttpContext?.User);
 
             if (userId == targetUserId || await IsUserApiAdmin())
                 return true;
 
+            if (groupAdminRightRequired)
+                return await _dbCtx.ApiGroupsUsers
+                    .AnyAsync(gu =>
+                        gu.UserId == targetUserId &&
+                        gu.GroupId == targetGroupId &&
+                        gu.Role == GroupMemberRoles.Admin);
+
             return await _dbCtx.ApiGroupsUsers
                 .AnyAsync(gu =>
                     gu.UserId == targetUserId && 
-                    gu.GroupId == targetGroupId &&
-                    gu.Role == GroupMemberRoles.Admin);
+                    gu.GroupId == targetGroupId);
         }
 
         private async Task<bool> IsUserApiAdmin()

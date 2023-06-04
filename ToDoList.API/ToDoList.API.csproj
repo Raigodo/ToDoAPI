@@ -24,8 +24,4 @@
     <PackageReference Include="Swashbuckle.AspNetCore.Filters" Version="6.1.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Domain\Interfaces\" />
-  </ItemGroup>
-
 </Project>

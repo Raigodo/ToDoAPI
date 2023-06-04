@@ -64,6 +64,8 @@ public class GroupRepository : IGroupRepository
     public async Task<IEnumerable<GroupEntity>> GetAllGroupsAsync()
     {
         return await _dbCtx.ApiGroups
+            .Include(g=>g.AcessibleBoxes)
+            .Include(g => g.MembersInGroup)
             .ToListAsync();
     }
 

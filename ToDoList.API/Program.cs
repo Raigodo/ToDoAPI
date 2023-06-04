@@ -6,6 +6,8 @@ using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
 using System.Text;
 using ToDoList.API.DAL;
+using ToDoList.API.DAL.Interfaces;
+using ToDoList.API.DAL.Repositories;
 using ToDoList.API.Domain.Entities;
 using ToDoList.API.Services.Auth;
 using ToDoList.API.Services.Check;
@@ -64,6 +66,12 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IAcessGuardService, AcessGuardService>();
 builder.Services.AddScoped<ICheckExistingRecordService, CheckExistingRecordService>();
 builder.Services.AddTransient<IAuthService, AuthService>();
+
+builder.Services.AddTransient<IGroupMembershipRepository, GroupMembershipsRepository>();
+builder.Services.AddTransient<IGroupRepository, GroupRepository>();
+builder.Services.AddTransient<ITaskBoxRepository, TaskBoxRepository>();
+builder.Services.AddTransient<ITaskRepository, TaskRepository>();
+builder.Services.AddTransient<IUserRepository, UserRepository>();
 
 var app = builder.Build();
 

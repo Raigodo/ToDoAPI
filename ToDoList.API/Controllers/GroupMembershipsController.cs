@@ -57,7 +57,7 @@ public class GroupMembershipController : ControllerBase
         if (user == null) return BadRequest("User not found");
         if (group == null) return BadRequest("Group not found");
 
-        if (!await _acessCheck.IsGroupAcessibleAsync(memberDto.GroupId))
+        if (!await _acessCheck.IsGroupAcessibleAsync(memberDto.GroupId, true))
             return Unauthorized("Acess denied");
 
         var member = await _memberRepository.AddMemberAsync(user, group);
@@ -76,7 +76,7 @@ public class GroupMembershipController : ControllerBase
         var member = await _memberRepository.GetMemberAsync(user, group);
         if ( member == null) return BadRequest("Member not found");
 
-        if (!(await _acessCheck.IsGroupMemberAcessibleAsync(entityDto.UserId, entityDto.GroupId)))
+        if (!(await _acessCheck.IsGroupMemberAcessibleAsync(entityDto.UserId, entityDto.GroupId, true)))
             return Unauthorized("Acess denied");
 
         await _memberRepository.UpdateMemberAsync(member, entityDto);
@@ -95,7 +95,7 @@ public class GroupMembershipController : ControllerBase
         var member = await _memberRepository.GetMemberAsync(user, group);
         if (member == null) return BadRequest("Member not found");
 
-        if (!(await _acessCheck.IsGroupMemberAcessibleAsync(userId: userId, groupId: groupId)))
+        if (!(await _acessCheck.IsGroupMemberAcessibleAsync(userId, groupId, true)))
             return Unauthorized("Acess denied");
 
         await _memberRepository.RemoveGroupMemberAsync(member);

@@ -47,6 +47,18 @@ public class TaskBoxRepository : ITaskBoxRepository
         return await _dbCtx.ApiTaskBoxes.ToListAsync();
     }
 
+    public async Task<IEnumerable<TaskBoxEntity>> GetGroupRootTaskBoxesAsync()
+    {
+        var userId = _userManager.GetUserId(_httpCtxAcessor.HttpContext?.User);
+        return await _dbCtx.ApiTaskBoxes
+            .Include(b => b.Tasks)
+            .Include(b => b.SubFolders)
+            .Where(b =>
+                b.AssociatedGroup.MembersInGroup.Any(gu => gu.UserId == userId) &&
+                b.ParrentBoxId == null)
+            .ToListAsync();
+    }
+
     public async Task<IEnumerable<TaskBoxEntity>> GetGroupRootTaskBoxesAsync(GroupEntity group)
     {
         var userId = _userManager.GetUserId(_httpCtxAcessor.HttpContext?.User);
