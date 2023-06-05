@@ -1,10 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using ToDoList.API.DAL;
 using ToDoList.API.Domain.Dto;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using ToDoList.API.Services.Check;
-using ToDoList.API.Domain.Entities;
 using ToDoList.API.DAL.Interfaces;
 using ToDoList.API.Domain.Roles;
 

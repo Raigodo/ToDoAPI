@@ -1,33 +1,27 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using System.Diagnostics.CodeAnalysis;
-using System.Text.RegularExpressions;
+﻿using Microsoft.EntityFrameworkCore;
 using ToDoList.API.DAL.Interfaces;
 using ToDoList.API.Domain.Dto;
 using ToDoList.API.Domain.Entities;
-using ToDoList.API.Domain.Roles;
 
 namespace ToDoList.API.DAL.Repositories;
 
 public class GroupMembershipsRepository : IGroupMembershipRepository
 {
     private ApiDbContext _dbCtx;
-    private IHttpContextAccessor _httpCtxAcessor;
 
     public GroupMembershipsRepository(
-        ApiDbContext dbCtx,
-        IHttpContextAccessor httpCtxAcessor)
+        ApiDbContext dbCtx)
     {
         _dbCtx = dbCtx;
-        _httpCtxAcessor = httpCtxAcessor;
     }
 
-    public async Task<GroupsUsersEntity> AddMemberAsync(UserEntity user, GroupEntity group)
+    public async Task<GroupsUsersEntity> AddMemberAsync(UserEntity user, GroupEntity group, GroupMemberDto memberDto)
     {
         var member = new GroupsUsersEntity()
         {
             UserId = user.Id,
             GroupId = group.Id,
+            Role = memberDto.Role,
         };
         await _dbCtx.ApiGroupsUsers.AddAsync(member);
         await _dbCtx.SaveChangesAsync();

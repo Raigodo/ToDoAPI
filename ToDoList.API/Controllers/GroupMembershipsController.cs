@@ -3,12 +3,13 @@ using ToDoList.API.Domain.Dto;
 using Microsoft.AspNetCore.Authorization;
 using ToDoList.API.Services.Check;
 using ToDoList.API.DAL.Interfaces;
+using ToDoList.API.Domain.Validation;
 
 namespace ToDoList.API.Controllers;
 
 
 [ApiController]
-[Authorize(Roles = "ApiUser,ApiAdmin")]
+//[Authorize]
 [Route("api/[controller]")]
 public class GroupMembershipController : ControllerBase
 {
@@ -49,8 +50,11 @@ public class GroupMembershipController : ControllerBase
 
     [HttpPost]
     [Route("AddMember")]
-    public async Task<IActionResult> AddMember(GroupMemberDto memberDto)
+    public async Task<IActionResult> AddMember([ValidateMemberDto] GroupMemberDto memberDto)
     {
+        if (!ModelState.IsValid)
+            return BadRequest("Something went wrong");
+
         var user = await _userRepository.GetUserByIdAsync(memberDto.UserId);
         var group = await _groupRepository.GetGroupByIdAsync(memberDto.GroupId);
 
@@ -60,14 +64,14 @@ public class GroupMembershipController : ControllerBase
         if (!await _acessCheck.IsGroupAcessibleAsync(memberDto.GroupId, true))
             return Unauthorized("Acess denied");
 
-        var member = await _memberRepository.AddMemberAsync(user, group);
+        var member = await _memberRepository.AddMemberAsync(user, group, memberDto);
 
         return CreatedAtAction("GetMembers", new { member.GroupId }, member);
     }
 
     [HttpPatch]
     [Route("Update")]
-    public async Task<IActionResult> Update(GroupMemberDto entityDto)//currently useless
+    public async Task<IActionResult> Update([ValidateMemberDto] GroupMemberDto entityDto)//currently useless
     {
         var user = await _userRepository.GetUserByIdAsync(entityDto.UserId);
         var group = await _groupRepository.GetGroupByIdAsync(entityDto.GroupId);

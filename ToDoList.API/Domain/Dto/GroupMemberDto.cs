@@ -1,7 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.Runtime.InteropServices;
 using ToDoList.API.Domain.Roles;
-using ToDoList.API.Migrations;
 
 namespace ToDoList.API.Domain.Dto
 {
@@ -12,6 +10,6 @@ namespace ToDoList.API.Domain.Dto
         [Required]
         public int GroupId { get; set; }
 
-        public string? Role { get; set; } = GroupMemberRoles.Member;
+        public string Role { get; set; } = GroupMemberRoles.Member;
     }
 }

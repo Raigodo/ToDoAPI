@@ -2,6 +2,6 @@
 
 public static class ApiUserRoles
 {
-    public const string Admin = "ApiAdmin";
-    public const string User = "ApiUser";
+    public const string Admin = "Admin";
+    public const string User = "User";
 }
