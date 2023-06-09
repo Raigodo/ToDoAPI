@@ -1,9 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics.CodeAnalysis;
-using System.Text.Json.Serialization;
 
-namespace ToDoList.API.Domain.Entities;
+namespace ToDoList.Domain.Entities;
 
 public class GroupEntity
 {

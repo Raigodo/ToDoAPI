@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using System.ComponentModel.DataAnnotations;
 
-namespace ToDoList.API.Domain.Entities;
+namespace ToDoList.Domain.Entities;
 
 public class UserEntity : IdentityUser
 {

@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace ToDoList.API.Domain.AccountDto;
+namespace ToDoList.Domain.Dto.AccountDto;
 
 public class LoginDto
 {

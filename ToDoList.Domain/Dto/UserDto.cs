@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace ToDoList.API.Domain.Dto;
+namespace ToDoList.Domain.Dto;
 
 public class UserDto
 {

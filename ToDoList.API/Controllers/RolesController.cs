@@ -1,13 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Data;
-using System.Xml.Linq;
-using ToDoList.API.DAL;
-using ToDoList.API.Domain.Entities;
-using ToDoList.API.Domain.Roles;
+using ToDoList.Domain.Entities;
+using ToDoList.Domain.Roles;
 
 namespace ToDoList.API.Controllers;
 

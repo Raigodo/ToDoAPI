@@ -1,4 +1,4 @@
-﻿using ToDoList.API.Domain.AccountDto;
+﻿using ToDoList.Domain.Dto.AccountDto;
 
 namespace ToDoList.API.Services.Auth;
 

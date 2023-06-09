@@ -1,8 +1,8 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
-using ToDoList.API.Domain.Roles;
+using ToDoList.Domain.Roles;
 
-namespace ToDoList.API.Domain.Entities;
+namespace ToDoList.Domain.Entities;
 
 public class GroupsUsersEntity
 {

@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using ToDoList.API.Domain.AccountDto;
 using ToDoList.API.Services.Auth;
+using ToDoList.Domain.Dto.AccountDto;
 
 namespace ToDoList.API.Controllers;
 

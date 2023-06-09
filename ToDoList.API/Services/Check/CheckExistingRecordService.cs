@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System.Text.RegularExpressions;
-using ToDoList.API.DAL;
+using ToDoList.DAL;
 
 namespace ToDoList.API.Services.Check
 {

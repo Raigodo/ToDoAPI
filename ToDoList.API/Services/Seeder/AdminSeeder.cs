@@ -1,9 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using System.Xml.Linq;
-using ToDoList.API.DAL;
-using ToDoList.API.Domain.AccountDto;
-using ToDoList.API.Domain.Entities;
-using ToDoList.API.Domain.Roles;
+using ToDoList.Domain.Entities;
+using ToDoList.Domain.Roles;
 
 namespace ToDoList.API.Services.Seeder;
 

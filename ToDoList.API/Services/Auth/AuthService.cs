@@ -1,12 +1,11 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using ToDoList.API.Domain.AccountDto;
-using ToDoList.API.Domain.Entities;
-using ToDoList.API.Domain.Roles;
+using ToDoList.Domain.Dto.AccountDto;
+using ToDoList.Domain.Entities;
+using ToDoList.Domain.Roles;
 
 namespace ToDoList.API.Services.Auth;
 

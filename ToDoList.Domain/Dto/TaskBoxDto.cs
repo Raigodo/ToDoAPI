@@ -1,9 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics.CodeAnalysis;
-using ToDoList.API.Domain.Entities;
 
-namespace ToDoList.API.Domain.Dto;
+namespace ToDoList.Domain.Dto;
 
 public class TaskBoxDto
 {
