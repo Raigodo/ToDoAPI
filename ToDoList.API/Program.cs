@@ -9,9 +9,9 @@ using ToDoList.DAL;
 using ToDoList.DAL.Interfaces;
 using ToDoList.DAL.Repositories;
 using ToDoList.Domain.Entities;
-using ToDoList.API.Services.Auth;
-using ToDoList.API.Services.Check;
-using ToDoList.API.Services.Seeder;
+using ToDoList.Services.Auth;
+using ToDoList.Services.Check;
+using ToDoList.Services.Seeder;
 
 var builder = WebApplication.CreateBuilder(args);
 
