@@ -5,11 +5,11 @@ VisualStudioVersion = 17.6.33712.159
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ToDoList.API", "ToDoList.API\ToDoList.API.csproj", "{491F3C1B-8BF7-49EB-96AB-24BDEDCC82B4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToDoList.Domain", "ToDoList.Domain\ToDoList.Domain.csproj", "{0C62C4D4-E716-4B86-95D9-25925BC9A89D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ToDoList.Domain", "ToDoList.Domain\ToDoList.Domain.csproj", "{0C62C4D4-E716-4B86-95D9-25925BC9A89D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToDoList.DAL", "ToDoList.DAL\ToDoList.DAL.csproj", "{94483A20-33CA-4752-87A5-F47B39FA2CCF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ToDoList.DAL", "ToDoList.DAL\ToDoList.DAL.csproj", "{94483A20-33CA-4752-87A5-F47B39FA2CCF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToDoList.Web", "ToDoList.Web\ToDoList.Web.csproj", "{15ED2544-EC42-4DD5-8965-BC12AF80A511}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ToDoList.Services", "ToDoList.Services\ToDoList.Services.csproj", "{41A9ED50-8DA8-4A0D-AB8A-F70E786A9380}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,10 +29,10 @@ Global
 		{94483A20-33CA-4752-87A5-F47B39FA2CCF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{94483A20-33CA-4752-87A5-F47B39FA2CCF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{94483A20-33CA-4752-87A5-F47B39FA2CCF}.Release|Any CPU.Build.0 = Release|Any CPU
-		{15ED2544-EC42-4DD5-8965-BC12AF80A511}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{15ED2544-EC42-4DD5-8965-BC12AF80A511}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{15ED2544-EC42-4DD5-8965-BC12AF80A511}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{15ED2544-EC42-4DD5-8965-BC12AF80A511}.Release|Any CPU.Build.0 = Release|Any CPU
+		{41A9ED50-8DA8-4A0D-AB8A-F70E786A9380}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{41A9ED50-8DA8-4A0D-AB8A-F70E786A9380}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{41A9ED50-8DA8-4A0D-AB8A-F70E786A9380}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{41A9ED50-8DA8-4A0D-AB8A-F70E786A9380}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
