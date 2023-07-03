@@ -50,29 +50,29 @@ namespace ToDoList.API.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "b1dddcd4-7f1e-4f7b-92b2-4ca675e522e8",
-                            ConcurrencyStamp = "bb0bb436-cc6f-4911-b562-70bdfac1515e",
+                            Id = "f9c3ada8-0485-48d6-b693-689f1c0df80f",
+                            ConcurrencyStamp = "2c156815-11e7-482c-8d48-a9ec8f642197",
                             Name = "ApiUser",
                             NormalizedName = "APIUSER"
                         },
                         new
                         {
-                            Id = "3faf7475-51a3-41df-b9f8-11f70e55d025",
-                            ConcurrencyStamp = "879b9718-f9b8-4283-8443-0bfb7b88a491",
+                            Id = "5ad1ba83-3f8d-4c1f-a469-685ee57f050e",
+                            ConcurrencyStamp = "025047fe-640c-4a4e-9115-5e87da39e90e",
                             Name = "ApiAdmin",
                             NormalizedName = "APIADMIN"
                         },
                         new
                         {
-                            Id = "a19759fa-5794-4127-8453-e3b81e0b0a6f",
-                            ConcurrencyStamp = "405d0567-91c9-4ed0-a184-ee06e6f7e65e",
+                            Id = "17c67d50-12ff-49d9-8ffd-67ef3f030c36",
+                            ConcurrencyStamp = "05268544-1a88-4ce2-bfe7-e50d0375eab6",
                             Name = "GroupMember",
                             NormalizedName = "GROUPMEMBER"
                         },
                         new
                         {
-                            Id = "ae26a502-f940-4515-971c-dd9dd811a044",
-                            ConcurrencyStamp = "d287954d-e4d1-45d0-bdd0-ee675ba1667d",
+                            Id = "1644885c-7ae5-4481-8965-7d53749d05e3",
+                            ConcurrencyStamp = "d156733c-5f67-4320-992e-a220a67fab13",
                             Name = "GroupAdmin",
                             NormalizedName = "GROUPADMIN"
                         });
