@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using ToDoList.DAL.Interfaces;
-using ToDoList.Domain.Dto;
+using ToDoList.Application.Dto.Receive.User;
+using ToDoList.Application.Interfaces;
 using ToDoList.Domain.Entities;
 
 namespace ToDoList.DAL.Repositories;
@@ -15,7 +15,7 @@ public class UserRepository : IUserRepository
 
     public UserRepository(
         ApiDbContext appDbContext,
-        UserManager<UserEntity> userManager, 
+        UserManager<UserEntity> userManager,
         IHttpContextAccessor httpCtxAcessor)
     {
         _dbCtx = appDbContext;
@@ -23,43 +23,34 @@ public class UserRepository : IUserRepository
         _httpCtxAcessor = httpCtxAcessor;
     }
 
-    public async Task<bool> DeleteUserAsync(UserEntity user)
+    public async Task DeleteUserAsync(ReceiveUserIdDto userId)
     {
+        var user = await GetUserByIdAsync(userId);
         var results = await _userManager.DeleteAsync(user);
         if (results.Succeeded)
             await _dbCtx.SaveChangesAsync();
-
-        return results.Succeeded;
     }
-
 
     public async Task<IEnumerable<UserEntity>> GetAllUsersAsync()
     {
         return await _userManager.Users.ToListAsync();
     }
 
-
-    public async Task<UserEntity?> GetCurrentUserAsync()
-    {
-        var userId = _userManager.GetUserId(_httpCtxAcessor.HttpContext?.User);
-        return await _dbCtx.Users
-            .Include(u => u.GroupMemberships)
-            .FirstOrDefaultAsync(u => u.Id == userId);
-    }
-
-
-    public async Task<UserEntity?> GetUserByIdAsync(string userId)
+    public async Task<UserEntity?> GetUserByIdAsync(ReceiveUserIdDto userId)
     {
         return await _dbCtx.Users
             .Include(u => u.GroupMemberships)
-            .FirstOrDefaultAsync(u => u.Id == userId);
+            .FirstOrDefaultAsync(u => u.Id == userId.Id);
     }
 
-
-    public async Task<bool> UpdateUserAsync(UserEntity user, UserDto userDto)
+    public async Task UpdateUserAsync(ReceiveUpdateUserDto userDto)
     {
+        var userId = new ReceiveUserIdDto
+        {
+            Id = userDto.Id
+        };
+        var user = await GetUserByIdAsync(userId);
         user.Nickname = userDto.Nickname;
         await _dbCtx.SaveChangesAsync();
-        return true;
     }
 }

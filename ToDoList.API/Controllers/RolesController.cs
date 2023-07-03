@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using ToDoList.Application.Dto.Receive.User;
 using ToDoList.Domain.Entities;
 using ToDoList.Domain.Roles;
 
@@ -45,15 +46,15 @@ public class RolesController : ControllerBase
 
         if (roleResult.Succeeded)
             return CreatedAtAction("GetAllRoles", null, roleName);
-        
+
         return BadRequest("Something went wrong");
     }
 
     [HttpPost]
     [Route("AddUserToRole")]
-    public async Task<IActionResult> AddUserToRole(string userId, string roleName)
+    public async Task<IActionResult> AddUserToRole(ReceiveUserIdDto userId, string roleName)
     {
-        var user = await _userManager.FindByIdAsync(userId);
+        var user = await _userManager.FindByIdAsync(userId.Id);
 
         if (user == null)
             return BadRequest("User does not exist");
@@ -65,7 +66,7 @@ public class RolesController : ControllerBase
 
         var result = await _userManager.AddToRoleAsync(user, roleName);
 
-        if (result.Succeeded) 
+        if (result.Succeeded)
             return CreatedAtAction("GetUserRoles", new { userId }, roleName);
 
         return BadRequest("Something went wrong");
@@ -73,9 +74,9 @@ public class RolesController : ControllerBase
 
     [HttpGet]
     [Route("GetUserRoles")]
-    public async Task<IActionResult> GetUserRoles(string userId)
+    public async Task<IActionResult> GetUserRoles(ReceiveUserIdDto userId)
     {
-        var user = await _userManager.FindByIdAsync(userId);
+        var user = await _userManager.FindByIdAsync(userId.Id);
 
         if (user == null)
             return BadRequest("User does not exist");
@@ -87,9 +88,9 @@ public class RolesController : ControllerBase
 
     [HttpGet]
     [Route("RemoveUserFromRole")]
-    public async Task<IActionResult> RemoveUserFromRole(string userId, string roleName)
+    public async Task<IActionResult> RemoveUserFromRole(ReceiveUserIdDto userId, string roleName)
     {
-        var user = await _userManager.FindByIdAsync(userId);
+        var user = await _userManager.FindByIdAsync(userId.Id);
 
         if (user == null)
             return BadRequest("User does not exist");

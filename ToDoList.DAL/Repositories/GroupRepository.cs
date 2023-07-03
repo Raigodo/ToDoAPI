@@ -1,8 +1,9 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using ToDoList.DAL.Interfaces;
-using ToDoList.Domain.Dto;
+using ToDoList.Application.Dto.Receive.Group;
+using ToDoList.Application.Dto.Receive.User;
+using ToDoList.Application.Interfaces;
 using ToDoList.Domain.Entities;
 using ToDoList.Domain.Roles;
 
@@ -24,11 +25,37 @@ public class GroupRepository : IGroupRepository
         _httpCtxAcessor = httpCtxAcessor;
     }
 
-    public async Task<GroupEntity> CreateGroupAsync(GroupDto groupDto)
+    public async Task<IEnumerable<GroupEntity>> GetAllGroupsAsync()
+    {
+        return await _dbCtx.ApiGroups
+            .Include(g => g.AcessibleBoxes)
+            .Include(g => g.MembersInGroup)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<GroupEntity>> GetAllGroupsAsync(ReceiveUserIdDto userId)
+    {
+        return await _dbCtx.ApiGroups
+            .Include(g => g.MembersInGroup)
+            .Include(g => g.AcessibleBoxes)
+            .Where(g => g.MembersInGroup
+                .Any(gu => gu.UserId == userId.Id))
+            .ToListAsync();
+    }
+
+    public async Task<GroupEntity?> GetGroupByIdAsync(ReceiveGroupIdDto groupId)
+    {
+        return await _dbCtx.ApiGroups
+            .Include(g => g.MembersInGroup)
+            .Include(g => g.AcessibleBoxes)
+            .FirstOrDefaultAsync(g => g.Id == groupId.Id);
+    }
+
+    public async Task<GroupEntity> CreateGroupAsync(ReceiveGroupDto groupDto)
     {
         var group = new GroupEntity()
         {
-            Title = groupDto.Title,
+            Name = groupDto.Name,
             Description = groupDto.Description
         };
         await _dbCtx.ApiGroups.AddAsync(group);
@@ -42,51 +69,26 @@ public class GroupRepository : IGroupRepository
         };
         await _dbCtx.ApiGroupsUsers.AddAsync(groupMember);
         await _dbCtx.SaveChangesAsync();
-
         return group;
     }
 
-    public async Task<bool> UpdateGroupAsync(GroupEntity group, GroupDto groupDto)
+    public async Task UpdateGroupAsync(ReceiveUpdateGroupDto groupDto)
     {
-        group.Title = groupDto.Title;
+        var groupId = new ReceiveGroupIdDto
+        {
+            Id = groupDto.Id
+        };
+        var group = await GetGroupByIdAsync(groupId);
+        group.Name = groupDto.Name;
         group.Description = groupDto.Description;
 
         await _dbCtx.SaveChangesAsync();
-        return true;
     }
 
-    public async Task<bool> DeleteGroupAsync(GroupEntity group)
+    public async Task DeleteGroupAsync(ReceiveGroupIdDto groupId)
     {
+        var group = await GetGroupByIdAsync(groupId);
         _dbCtx.ApiGroups.Remove(group);
         await _dbCtx.SaveChangesAsync();
-        return true;
-    }
-
-    public async Task<IEnumerable<GroupEntity>> GetAllGroupsAsync()
-    {
-        return await _dbCtx.ApiGroups
-            .Include(g=>g.AcessibleBoxes)
-            .Include(g => g.MembersInGroup)
-            .ToListAsync();
-    }
-
-    public async Task<GroupEntity?> GetGroupByIdAsync(int groupId)
-    {
-        return  await _dbCtx.ApiGroups
-            .Include(g => g.MembersInGroup)
-            .Include(g => g.AcessibleBoxes)
-            //TODO include subfolders and tasks
-            .FirstOrDefaultAsync(g => g.Id == groupId);
-    }
-
-    public async Task<IEnumerable<GroupEntity>> GetAllMemberingGroups()
-    {
-        var userId = _userManager.GetUserId(_httpCtxAcessor.HttpContext?.User);
-        return await _dbCtx.ApiGroups
-            .Include(g => g.MembersInGroup)
-            .Include(g => g.AcessibleBoxes)
-            .Where(g => g.MembersInGroup
-                .Any(gu => gu.UserId == userId))
-            .ToListAsync();
     }
 }

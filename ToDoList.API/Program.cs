@@ -5,13 +5,11 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
 using System.Text;
+using ToDoList.Application.Interfaces;
 using ToDoList.DAL;
-using ToDoList.DAL.Interfaces;
 using ToDoList.DAL.Repositories;
 using ToDoList.Domain.Entities;
 using ToDoList.Services.Auth;
-using ToDoList.Services.Check;
-using ToDoList.Services.Seeder;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,7 +25,8 @@ builder.Services.AddIdentity<UserEntity, IdentityRole>(options =>
     .AddEntityFrameworkStores<ApiDbContext>()
     .AddDefaultTokenProviders();
 
-builder.Services.AddAuthentication(options =>{
+builder.Services.AddAuthentication(options =>
+{
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -50,7 +49,8 @@ builder.Services.AddAuthentication(options =>{
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(options =>{
+builder.Services.AddSwaggerGen(options =>
+{
     options.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
     {
         Description = "bearer {token}",
@@ -62,9 +62,6 @@ builder.Services.AddSwaggerGen(options =>{
 });
 
 builder.Services.AddHttpContextAccessor();
-
-builder.Services.AddScoped<IAcessGuardService, AcessGuardService>();
-builder.Services.AddScoped<ICheckExistingRecordService, CheckExistingRecordService>();
 builder.Services.AddTransient<IAuthService, AuthService>();
 
 builder.Services.AddTransient<IGroupMembershipRepository, GroupMembershipsRepository>();
@@ -88,9 +85,5 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-
-
-await RoleSeeder.SeedAsync(app);
-await AdminSeeder.SeedAsync(app);
 
 app.Run();

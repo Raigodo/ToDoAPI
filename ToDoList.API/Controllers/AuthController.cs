@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using ToDoList.Application.Dto.Receive.User;
 using ToDoList.Services.Auth;
-using ToDoList.Domain.Dto.AccountDto;
 
 namespace ToDoList.API.Controllers;
 
@@ -18,22 +18,22 @@ public class AuthController : ControllerBase
 
     [HttpPost]
     [Route("Login")]
-    public async Task<IActionResult> Login(LoginDto loginDto)
+    public async Task<IActionResult> Login(ReceiveLoginDto login)
     {
-        var result = await _authService.Login(loginDto);
+        var result = await _authService.Login(login);
 
         if (!result)
             return BadRequest("Incorrect Username or Password");
 
-        var tokenString = await _authService.GenerateTokenStringAsync(loginDto);
+        var tokenString = await _authService.GenerateTokenStringAsync(login);
         return Ok(tokenString);
     }
 
     [HttpPost]
     [Route("Register")]
-    public async Task<IActionResult> Register(RegisterDto registerDto)
+    public async Task<IActionResult> Register(ReceiveRegisterDto register)
     {
-        var result = await _authService.Register(registerDto);
+        var result = await _authService.Register(register);
 
         if (!result)
             return BadRequest("Registration failed");

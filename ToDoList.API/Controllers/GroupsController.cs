@@ -1,8 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
-using ToDoList.Services.Check;
-using ToDoList.DAL.Interfaces;
-using ToDoList.Domain.Dto;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using ToDoList.Application.Dto.Receive.Group;
+using ToDoList.Application.Interfaces;
 
 namespace ToDoList.API.Controllers;
 
@@ -12,74 +11,47 @@ namespace ToDoList.API.Controllers;
 [Route("api/[controller]")]
 public class GroupsController : ControllerBase
 {
-    private IAcessGuardService _acessCheck;
     private IGroupRepository _groupRepository;
 
     public GroupsController(
-        IAcessGuardService acessCheck,
         IGroupRepository groupRepository)
     {
-        _acessCheck = acessCheck;
         _groupRepository = groupRepository;
     }
 
 
     [HttpGet]
     [Route("Get")]
-    public async Task<IActionResult> Get(int groupId)
+    public async Task<IActionResult> Get(ReceiveGroupIdDto groupId)
     {
         var group = await _groupRepository.GetGroupByIdAsync(groupId);
-
-        if (group == null)
-            return BadRequest("Group not found");
-
-        if (!(await _acessCheck.IsGroupAcessibleAsync(groupId)))
-            return Unauthorized("Acess denied");
-
         return Ok(group);
     }
 
 
     [HttpPost]
     [Route("Create")]
-    public async Task<IActionResult> Create(GroupDto entityDto)
+    public async Task<IActionResult> Create(ReceiveGroupDto groupDto)
     {
-        var group = await _groupRepository.CreateGroupAsync(entityDto);
-
+        var group = await _groupRepository.CreateGroupAsync(groupDto);
         return CreatedAtAction("Get", new { group.Id }, group);
     }
 
 
     [HttpPatch]
     [Route("Update")]
-    public async Task<IActionResult> Update(int groupId, GroupDto entityDto)
+    public async Task<IActionResult> Update(ReceiveUpdateGroupDto groupDto)
     {
-        var group = await _groupRepository.GetGroupByIdAsync(groupId);
-
-        if (group == null)
-            return BadRequest("Group not found");
-
-        if (!(await _acessCheck.IsGroupAcessibleAsync(groupId, true)))
-            return Unauthorized("Acess denied");
-
-        await _groupRepository.UpdateGroupAsync(group, entityDto);
+        await _groupRepository.UpdateGroupAsync(groupDto);
         return NoContent();
     }
 
 
     [HttpDelete]
     [Route("Delete")]
-    public async Task<IActionResult> Delete(int groupId)
+    public async Task<IActionResult> Delete(ReceiveGroupIdDto groupId)
     {
-        var group = await _groupRepository.GetGroupByIdAsync(groupId);
-
-        if (group == null)
-            return BadRequest("Group not found");
-
-        if (!(await _acessCheck.IsGroupAcessibleAsync(groupId, true)))
-            return Unauthorized("Acess denied");
-
-        await _groupRepository.DeleteGroupAsync(group);
+        await _groupRepository.DeleteGroupAsync(groupId);
         return NoContent();
     }
 }

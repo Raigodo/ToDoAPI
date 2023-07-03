@@ -1,8 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using ToDoList.Services.Check;
-using ToDoList.DAL.Interfaces;
-using ToDoList.Domain.Validation;
-using ToDoList.Domain.Dto;
+using ToDoList.Application.Dto.Receive.Group;
+using ToDoList.Application.Dto.Receive.Member;
+using ToDoList.Application.Interfaces;
 
 namespace ToDoList.API.Controllers;
 
@@ -12,96 +11,47 @@ namespace ToDoList.API.Controllers;
 [Route("api/[controller]")]
 public class GroupMembershipController : ControllerBase
 {
-    private IAcessGuardService _acessCheck;
     private IGroupMembershipRepository _memberRepository;
-    private IGroupRepository _groupRepository;
-    private IUserRepository _userRepository;
 
     public GroupMembershipController(
-        IAcessGuardService acessCheck,
-        IGroupMembershipRepository memberRepository,
-        IGroupRepository groupRepository,
-        IUserRepository userRepository)
+        IGroupMembershipRepository memberRepository)
     {
-        _acessCheck = acessCheck;
         _memberRepository = memberRepository;
-        _groupRepository = groupRepository;
-        _userRepository = userRepository;
     }
 
 
     [HttpGet]
     [Route("GetMembers")]
-    public async Task<IActionResult> GetMembers(int groupId)
+    public async Task<IActionResult> GetMembers(ReceiveGroupIdDto groupId)
     {
-        var group = await _groupRepository.GetGroupByIdAsync(groupId);
-
-        if (group == null)
-            return BadRequest("Group not found");
-
-        if (!(await _acessCheck.IsGroupAcessibleAsync(groupId)))
-            return Unauthorized("Acess denied");
-
-        var memberList = await _memberRepository.GetAllGroupMembersAsync(group);
+        var memberList = await _memberRepository.GetAllGroupMembersAsync(groupId);
 
         return Ok(memberList);
     }
 
     [HttpPost]
     [Route("AddMember")]
-    public async Task<IActionResult> AddMember([ValidateMemberDto] GroupMemberDto memberDto)
+    public async Task<IActionResult> AddMember(ReceiveMemberDto memberDto)
     {
-        if (!ModelState.IsValid)
-            return BadRequest("Something went wrong");
-
-        var user = await _userRepository.GetUserByIdAsync(memberDto.UserId);
-        var group = await _groupRepository.GetGroupByIdAsync(memberDto.GroupId);
-
-        if (user == null) return BadRequest("User not found");
-        if (group == null) return BadRequest("Group not found");
-
-        if (!await _acessCheck.IsGroupAcessibleAsync(memberDto.GroupId, true))
-            return Unauthorized("Acess denied");
-
-        var member = await _memberRepository.AddMemberAsync(user, group, memberDto);
+        var member = await _memberRepository.AddMemberAsync(memberDto);
 
         return CreatedAtAction("GetMembers", new { member.GroupId }, member);
     }
 
     [HttpPatch]
     [Route("Update")]
-    public async Task<IActionResult> Update([ValidateMemberDto] GroupMemberDto entityDto)//currently useless
+    public async Task<IActionResult> Update(ReceiveMemberDto memberDto)
     {
-        var user = await _userRepository.GetUserByIdAsync(entityDto.UserId);
-        var group = await _groupRepository.GetGroupByIdAsync(entityDto.GroupId);
-        if (user == null || group == null) return BadRequest("Member not found");
-
-        var member = await _memberRepository.GetMemberAsync(user, group);
-        if ( member == null) return BadRequest("Member not found");
-
-        if (!(await _acessCheck.IsGroupMemberAcessibleAsync(entityDto.UserId, entityDto.GroupId, true)))
-            return Unauthorized("Acess denied");
-
-        await _memberRepository.UpdateMemberAsync(member, entityDto);
+        await _memberRepository.UpdateMemberAsync(memberDto);
         return NoContent();
     }
 
 
     [HttpDelete]
     [Route("Delete")]
-    public async Task<IActionResult> Delete(string userId, int groupId)
+    public async Task<IActionResult> Delete(ReceiveMemberIdDto memberId)
     {
-        var user = await _userRepository.GetUserByIdAsync(userId);
-        var group = await _groupRepository.GetGroupByIdAsync(groupId);
-        if (user == null || group == null) return BadRequest("Member not found");
-
-        var member = await _memberRepository.GetMemberAsync(user, group);
-        if (member == null) return BadRequest("Member not found");
-
-        if (!(await _acessCheck.IsGroupMemberAcessibleAsync(userId, groupId, true)))
-            return Unauthorized("Acess denied");
-
-        await _memberRepository.RemoveGroupMemberAsync(member);
+        await _memberRepository.RemoveGroupMemberAsync(memberId);
         return NoContent();
     }
 }

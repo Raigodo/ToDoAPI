@@ -46,6 +46,36 @@ namespace ToDoList.API.Migrations
                         .HasDatabaseName("RoleNameIndex");
 
                     b.ToTable("AspNetRoles", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = "b1dddcd4-7f1e-4f7b-92b2-4ca675e522e8",
+                            ConcurrencyStamp = "bb0bb436-cc6f-4911-b562-70bdfac1515e",
+                            Name = "ApiUser",
+                            NormalizedName = "APIUSER"
+                        },
+                        new
+                        {
+                            Id = "3faf7475-51a3-41df-b9f8-11f70e55d025",
+                            ConcurrencyStamp = "879b9718-f9b8-4283-8443-0bfb7b88a491",
+                            Name = "ApiAdmin",
+                            NormalizedName = "APIADMIN"
+                        },
+                        new
+                        {
+                            Id = "a19759fa-5794-4127-8453-e3b81e0b0a6f",
+                            ConcurrencyStamp = "405d0567-91c9-4ed0-a184-ee06e6f7e65e",
+                            Name = "GroupMember",
+                            NormalizedName = "GROUPMEMBER"
+                        },
+                        new
+                        {
+                            Id = "ae26a502-f940-4515-971c-dd9dd811a044",
+                            ConcurrencyStamp = "d287954d-e4d1-45d0-bdd0-ee675ba1667d",
+                            Name = "GroupAdmin",
+                            NormalizedName = "GROUPADMIN"
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -154,7 +184,7 @@ namespace ToDoList.API.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("ToDoList.API.Domain.Entities.GroupEntity", b =>
+            modelBuilder.Entity("ToDoList.Domain.Entities.GroupEntity", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -166,7 +196,11 @@ namespace ToDoList.API.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("Title")
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ShortDescription")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -175,7 +209,7 @@ namespace ToDoList.API.Migrations
                     b.ToTable("ApiGroups");
                 });
 
-            modelBuilder.Entity("ToDoList.API.Domain.Entities.GroupsUsersEntity", b =>
+            modelBuilder.Entity("ToDoList.Domain.Entities.GroupsUsersEntity", b =>
                 {
                     b.Property<string>("UserId")
                         .HasColumnType("text");
@@ -194,7 +228,7 @@ namespace ToDoList.API.Migrations
                     b.ToTable("ApiGroupsUsers");
                 });
 
-            modelBuilder.Entity("ToDoList.API.Domain.Entities.TaskBoxEntity", b =>
+            modelBuilder.Entity("ToDoList.Domain.Entities.TaskBoxEntity", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -221,7 +255,7 @@ namespace ToDoList.API.Migrations
                     b.ToTable("ApiTaskBoxes");
                 });
 
-            modelBuilder.Entity("ToDoList.API.Domain.Entities.TaskEntity", b =>
+            modelBuilder.Entity("ToDoList.Domain.Entities.TaskEntity", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -247,10 +281,9 @@ namespace ToDoList.API.Migrations
                     b.ToTable("ApiTasks");
                 });
 
-            modelBuilder.Entity("ToDoList.API.Domain.Entities.UserEntity", b =>
+            modelBuilder.Entity("ToDoList.Domain.Entities.UserEntity", b =>
                 {
                     b.Property<string>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("text");
 
                     b.Property<int>("AccessFailedCount")
@@ -327,7 +360,7 @@ namespace ToDoList.API.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
                 {
-                    b.HasOne("ToDoList.API.Domain.Entities.UserEntity", null)
+                    b.HasOne("ToDoList.Domain.Entities.UserEntity", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -336,7 +369,7 @@ namespace ToDoList.API.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
-                    b.HasOne("ToDoList.API.Domain.Entities.UserEntity", null)
+                    b.HasOne("ToDoList.Domain.Entities.UserEntity", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -351,7 +384,7 @@ namespace ToDoList.API.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ToDoList.API.Domain.Entities.UserEntity", null)
+                    b.HasOne("ToDoList.Domain.Entities.UserEntity", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -360,22 +393,22 @@ namespace ToDoList.API.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
                 {
-                    b.HasOne("ToDoList.API.Domain.Entities.UserEntity", null)
+                    b.HasOne("ToDoList.Domain.Entities.UserEntity", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("ToDoList.API.Domain.Entities.GroupsUsersEntity", b =>
+            modelBuilder.Entity("ToDoList.Domain.Entities.GroupsUsersEntity", b =>
                 {
-                    b.HasOne("ToDoList.API.Domain.Entities.GroupEntity", "Group")
+                    b.HasOne("ToDoList.Domain.Entities.GroupEntity", "Group")
                         .WithMany("MembersInGroup")
                         .HasForeignKey("GroupId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ToDoList.API.Domain.Entities.UserEntity", "User")
+                    b.HasOne("ToDoList.Domain.Entities.UserEntity", "User")
                         .WithMany("GroupMemberships")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -386,15 +419,15 @@ namespace ToDoList.API.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("ToDoList.API.Domain.Entities.TaskBoxEntity", b =>
+            modelBuilder.Entity("ToDoList.Domain.Entities.TaskBoxEntity", b =>
                 {
-                    b.HasOne("ToDoList.API.Domain.Entities.GroupEntity", "AssociatedGroup")
+                    b.HasOne("ToDoList.Domain.Entities.GroupEntity", "AssociatedGroup")
                         .WithMany("AcessibleBoxes")
                         .HasForeignKey("AssociatedGroupId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ToDoList.API.Domain.Entities.TaskBoxEntity", "ParrentBox")
+                    b.HasOne("ToDoList.Domain.Entities.TaskBoxEntity", "ParrentBox")
                         .WithMany("SubFolders")
                         .HasForeignKey("ParrentBoxId");
 
@@ -403,9 +436,9 @@ namespace ToDoList.API.Migrations
                     b.Navigation("ParrentBox");
                 });
 
-            modelBuilder.Entity("ToDoList.API.Domain.Entities.TaskEntity", b =>
+            modelBuilder.Entity("ToDoList.Domain.Entities.TaskEntity", b =>
                 {
-                    b.HasOne("ToDoList.API.Domain.Entities.TaskBoxEntity", "ParrentBox")
+                    b.HasOne("ToDoList.Domain.Entities.TaskBoxEntity", "ParrentBox")
                         .WithMany("Tasks")
                         .HasForeignKey("ParrentBoxId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -414,21 +447,21 @@ namespace ToDoList.API.Migrations
                     b.Navigation("ParrentBox");
                 });
 
-            modelBuilder.Entity("ToDoList.API.Domain.Entities.GroupEntity", b =>
+            modelBuilder.Entity("ToDoList.Domain.Entities.GroupEntity", b =>
                 {
                     b.Navigation("AcessibleBoxes");
 
                     b.Navigation("MembersInGroup");
                 });
 
-            modelBuilder.Entity("ToDoList.API.Domain.Entities.TaskBoxEntity", b =>
+            modelBuilder.Entity("ToDoList.Domain.Entities.TaskBoxEntity", b =>
                 {
                     b.Navigation("SubFolders");
 
                     b.Navigation("Tasks");
                 });
 
-            modelBuilder.Entity("ToDoList.API.Domain.Entities.UserEntity", b =>
+            modelBuilder.Entity("ToDoList.Domain.Entities.UserEntity", b =>
                 {
                     b.Navigation("GroupMemberships");
                 });

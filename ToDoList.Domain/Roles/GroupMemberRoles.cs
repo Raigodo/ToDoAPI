@@ -2,6 +2,6 @@
 
 public static class GroupMemberRoles
 {
-    public const string Admin = "Admin";
-    public const string Member = "Member";
+    public const string Admin = "GroupAdmin";
+    public const string Member = "GroupMember";
 }

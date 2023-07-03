@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using ToDoList.DAL.Interfaces;
-using ToDoList.Domain.Dto;
+using ToDoList.Application.Dto.Receive.Group;
+using ToDoList.Application.Dto.Receive.Member;
+using ToDoList.Application.Interfaces;
 using ToDoList.Domain.Entities;
 
 namespace ToDoList.DAL.Repositories;
@@ -15,12 +16,13 @@ public class GroupMembershipsRepository : IGroupMembershipRepository
         _dbCtx = dbCtx;
     }
 
-    public async Task<GroupsUsersEntity> AddMemberAsync(UserEntity user, GroupEntity group, GroupMemberDto memberDto)
+
+    public async Task<GroupsUsersEntity> AddMemberAsync(ReceiveMemberDto memberDto)
     {
         var member = new GroupsUsersEntity()
         {
-            UserId = user.Id,
-            GroupId = group.Id,
+            UserId = memberDto.UserId,
+            GroupId = memberDto.GroupId,
             Role = memberDto.Role,
         };
         await _dbCtx.ApiGroupsUsers.AddAsync(member);
@@ -28,33 +30,42 @@ public class GroupMembershipsRepository : IGroupMembershipRepository
         return member;
     }
 
-    public async Task<IEnumerable<GroupsUsersEntity>> GetAllGroupMembersAsync(GroupEntity group)
+    public async Task<IEnumerable<GroupsUsersEntity>> GetAllGroupMembersAsync(ReceiveGroupIdDto groupId)
     {
         return await _dbCtx.ApiGroupsUsers
-            .Where(gu => gu.GroupId == group.Id)
+            .Where(gu => gu.GroupId == groupId.Id)
             .ToListAsync();
     }
 
-    public async Task<GroupsUsersEntity?> GetMemberAsync(UserEntity user, GroupEntity group)
+    public async Task<GroupsUsersEntity?> GetMemberAsync(ReceiveMemberIdDto memberId)
     {
         return await _dbCtx.ApiGroupsUsers
-            .Where(gu => gu.GroupId == group.Id &&
-                gu.UserId == user.Id)
+            .Where(gu => gu.GroupId == memberId.GroupId &&
+                gu.UserId == memberId.UserId)
             .FirstOrDefaultAsync();
     }
 
-    public async Task<bool> RemoveGroupMemberAsync(GroupsUsersEntity groupMember)
+    public async Task RemoveGroupMemberAsync(ReceiveMemberIdDto memberId)
     {
-        _dbCtx.ApiGroupsUsers.Remove(groupMember);
+        var member = await _dbCtx.ApiGroupsUsers
+            .Where(m =>
+                m.UserId == memberId.UserId &&
+                m.GroupId == memberId.GroupId)
+            .FirstOrDefaultAsync();
+
+        _dbCtx.ApiGroupsUsers.Remove(member);
         await _dbCtx.SaveChangesAsync();
-        return true;
     }
 
-    public async Task<bool> UpdateMemberAsync(GroupsUsersEntity groupMember, GroupMemberDto memberDto)
+    public async Task UpdateMemberAsync(ReceiveMemberDto memberDto)
     {
-        groupMember.Role = memberDto.Role;
-        await _dbCtx.SaveChangesAsync();
+        var member = await _dbCtx.ApiGroupsUsers
+            .Where(m =>
+                m.UserId == memberDto.UserId &&
+                m.GroupId == memberDto.GroupId)
+            .FirstOrDefaultAsync();
 
-        return true;
+        member.Role = memberDto.Role;
+        await _dbCtx.SaveChangesAsync();
     }
 }

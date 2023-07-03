@@ -1,9 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
-using ToDoList.Services.Check;
-using ToDoList.DAL.Interfaces;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using ToDoList.Application.Dto.Receive.User;
+using ToDoList.Application.Interfaces;
 using ToDoList.Domain.Roles;
-using ToDoList.Domain.Dto;
 
 namespace ToDoList.API.Controllers;
 
@@ -14,20 +13,17 @@ namespace ToDoList.API.Controllers;
 [Route("api/[controller]")]
 public class UsersController : ControllerBase
 {
-    private IAcessGuardService _acessCheck;
     private IUserRepository _userRepository;
 
     public UsersController(
-        IAcessGuardService acessCheck,
         IUserRepository userRepository)
     {
-        _acessCheck = acessCheck;
         _userRepository = userRepository;
     }
 
 
     [HttpGet]
-    [Authorize(Roles = ApiUserRoles.Admin)]
+    //[Authorize(Roles = ApiUserRoles.Admin)]
     [Route("GetAll")]
     public async Task<IActionResult> GetAll()
     {
@@ -37,65 +33,29 @@ public class UsersController : ControllerBase
 
 
     [HttpGet]
-    [Route("GetSelf")]
-    public async Task<IActionResult> GetSelf()
+    [Route("Inspect")]
+    public async Task<IActionResult> Inspect(ReceiveUserIdDto userId)
     {
-        var user = await _userRepository.GetCurrentUserAsync();
-
-        if (user == null) 
-            return StatusCode(StatusCodes.Status500InternalServerError, "Unexpected error");
+        var user = await _userRepository.GetUserByIdAsync(userId);
 
         return Ok(user);
     }
 
 
-    [HttpGet]
-    [Route("ViewUser")]
-    public async Task<IActionResult> ViewUser(string userId)
-    {
-        var user = await _userRepository.GetUserByIdAsync(userId);
-
-        if (user == null)
-            return NotFound("User not found");
-
-        return Ok(new { 
-            user.Nickname,
-            user.GroupMemberships
-        });
-    }
-
-
     [HttpPatch]
     [Route("Update")]
-    public async Task<IActionResult> Update(string userId, UserDto entityDto)
+    public async Task<IActionResult> Update(ReceiveUpdateUserDto userDto)
     {
-        var user = await _userRepository.GetUserByIdAsync(userId);
-
-        if (user == null)
-            return BadRequest("user not found");
-
-        if (!(await _acessCheck.IsUserAcessibleAsync(userId)))
-            return Unauthorized("Acess denied");
-
-
-        var result = await _userRepository.UpdateUserAsync(user, entityDto);
+        await _userRepository.UpdateUserAsync(userDto);
         return NoContent();
     }
 
 
     [HttpDelete]
     [Route("Delete")]
-    public async Task<IActionResult> Delete(string userId)
+    public async Task<IActionResult> Delete(ReceiveUserIdDto userId)
     {
-        var user = await _userRepository.GetUserByIdAsync(userId);
-
-        if (user == null)
-            return BadRequest("User not found");
-
-        if (!(await _acessCheck.IsUserAcessibleAsync(userId)))
-            return Unauthorized("Acess denied");
-
-        await _userRepository.DeleteUserAsync(user);
+        await _userRepository.DeleteUserAsync(userId);
         return NoContent();
     }
 }

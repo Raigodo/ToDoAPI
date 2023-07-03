@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using ToDoList.DAL.Interfaces;
-using ToDoList.Domain.Dto;
+using ToDoList.Application.Dto.Receive.Task;
+using ToDoList.Application.Interfaces;
 using ToDoList.Domain.Entities;
 
 namespace ToDoList.DAL.Repositories;
@@ -15,7 +15,7 @@ public class TaskRepository : ITaskRepository
         _dbCtx = appDbContext;
     }
 
-    public async Task<TaskEntity> CreateTaskAsync(TaskDto taskDto)
+    public async Task<TaskEntity> CreateTaskAsync(ReceiveTaskDto taskDto)
     {
         var task = new TaskEntity()
         {
@@ -29,11 +29,11 @@ public class TaskRepository : ITaskRepository
         return task;
     }
 
-    public async Task<bool> DeleteTaskAsync(TaskEntity task)
+    public async Task DeleteTaskAsync(ReceiveTaskIdDto taskId)
     {
+        var task = await GetTaskByIdAsync(taskId);
         _dbCtx.ApiTasks.Remove(task);
         await _dbCtx.SaveChangesAsync();
-        return true;
     }
 
     public async Task<IEnumerable<TaskEntity>> GetAllTasksAsync()
@@ -41,19 +41,23 @@ public class TaskRepository : ITaskRepository
         return await _dbCtx.ApiTasks.ToListAsync();
     }
 
-    public async Task<TaskEntity?> GetTaskByIdAsync(int taskId)
+    public async Task<TaskEntity?> GetTaskByIdAsync(ReceiveTaskIdDto taskId)
     {
         return await _dbCtx.ApiTasks
-            .FirstOrDefaultAsync(t => t.Id == taskId);
+            .FirstOrDefaultAsync(t => t.Id == taskId.Id);
     }
 
-    public async Task<bool> UpdateTaskAsync(TaskEntity task, TaskDto taskDto)
+    public async Task UpdateTaskAsync(ReceiveUpdateTaskDto taskDto)
     {
+        var taskId = new ReceiveTaskIdDto
+        {
+            Id = taskDto.Id
+        };
+        var task = await GetTaskByIdAsync(taskId);
         task.ParrentBoxId = taskDto.ParrentBoxId;
         task.Title = taskDto.Title;
         task.Description = taskDto.Description;
 
         await _dbCtx.SaveChangesAsync();
-        return true;
     }
 }

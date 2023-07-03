@@ -1,8 +1,7 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using ToDoList.DAL.Interfaces;
-using ToDoList.Domain.Dto;
+﻿using Microsoft.EntityFrameworkCore;
+using ToDoList.Application.Dto.Receive.Group;
+using ToDoList.Application.Dto.Receive.TaskBox;
+using ToDoList.Application.Interfaces;
 using ToDoList.Domain.Entities;
 
 namespace ToDoList.DAL.Repositories;
@@ -20,7 +19,8 @@ public class TaskBoxRepository : ITaskBoxRepository
         _userRepository = userRepository;
     }
 
-    public async Task<TaskBoxEntity> CreateTaskBoxAsync(TaskBoxDto taskBoxDto)
+
+    public async Task<TaskBoxEntity> CreateTaskBoxAsync(ReceiveTaskBoxDto taskBoxDto)
     {
         var taskBox = new TaskBoxEntity()
         {
@@ -33,11 +33,11 @@ public class TaskBoxRepository : ITaskBoxRepository
         return taskBox;
     }
 
-    public async Task<bool> DeleteTaskBoxAsync(TaskBoxEntity taskBox)
+    public async Task DeleteTaskBoxAsync(ReceiveTaskBoxIdDto taskBoxId)
     {
+        var taskBox = await GetTaskBoxByIdAsync(taskBoxId);
         _dbCtx.ApiTaskBoxes.Remove(taskBox);
         await _dbCtx.SaveChangesAsync();
-        return true;
     }
 
     public async Task<IEnumerable<TaskBoxEntity>> GetAllTaskBoxesAsync()
@@ -45,52 +45,37 @@ public class TaskBoxRepository : ITaskBoxRepository
         return await _dbCtx.ApiTaskBoxes.ToListAsync();
     }
 
-    public async Task<IEnumerable<TaskBoxEntity>> GetGroupRootTaskBoxesAsync()
-    {
-        var currentUser = await _userRepository.GetCurrentUserAsync();
-        if (currentUser == null)
-            return new List<TaskBoxEntity>();
 
+    public async Task<IEnumerable<TaskBoxEntity>> GetRootTaskBoxesAsync(ReceiveGroupIdDto groupId)
+    {
         return await _dbCtx.ApiTaskBoxes
             .Include(b => b.Tasks)
             .Include(b => b.SubFolders)
             .Where(b =>
-                b.AssociatedGroup.MembersInGroup.Any(gu => gu.UserId == currentUser.Id) &&
+                b.AssociatedGroupId == groupId.Id &&
                 b.ParrentBoxId == null)
             .ToListAsync();
     }
 
-    public async Task<IEnumerable<TaskBoxEntity>> GetGroupRootTaskBoxesAsync(GroupEntity group)
-    {
-        var currentUser = await _userRepository.GetCurrentUserAsync();
-        if (currentUser == null)
-            return new List<TaskBoxEntity>();
-
-        return await _dbCtx.ApiTaskBoxes
-            .Include(b => b.Tasks)
-            .Include(b => b.SubFolders)
-            .Where(b =>
-                b.AssociatedGroupId == group.Id &&
-                b.AssociatedGroup.MembersInGroup.Any(gu => gu.UserId == currentUser.Id) &&
-                b.ParrentBoxId == null)
-            .ToListAsync();
-    }
-
-    public async Task<TaskBoxEntity?> GetTaskBoxByIdAsync(int boxId)
+    public async Task<TaskBoxEntity?> GetTaskBoxByIdAsync(ReceiveTaskBoxIdDto taskBoxId)
     {
         return await _dbCtx.ApiTaskBoxes
             .Include(b => b.Tasks)
             .Include(b => b.SubFolders)
-            .FirstOrDefaultAsync(b => b.Id == boxId);
+            .FirstOrDefaultAsync(b => b.Id == taskBoxId.Id);
     }
 
-    public async Task<bool> UpdateTaskBoxAsync(TaskBoxEntity taskBox, TaskBoxDto taskBoxDto)
+    public async Task UpdateTaskBoxAsync(ReceiveUpdateTaskBoxDto taskBoxDto)
     {
+        var taskBoxId = new ReceiveTaskBoxIdDto
+        {
+            Id = taskBoxDto.Id
+        };
+        var taskBox = await GetTaskBoxByIdAsync(taskBoxId);
         taskBox.Title = taskBoxDto.Title;
         taskBox.AssociatedGroupId = taskBoxDto.AssociatedGroupId;
         taskBox.ParrentBoxId = taskBoxDto.ParrentBoxId;
 
         await _dbCtx.SaveChangesAsync();
-        return true;
     }
 }

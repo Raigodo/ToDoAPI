@@ -26,7 +26,7 @@ public class AuthService : IAuthService
         _config = config;
     }
 
-    public async Task<bool> Login(LoginDto loginDto)
+    public async Task<bool> Login(ReceiveLoginDto loginDto)
     {
         var user = await _userManager.FindByNameAsync(loginDto.Username);
         if (user == null)
@@ -35,7 +35,7 @@ public class AuthService : IAuthService
         return await _userManager.CheckPasswordAsync(user, loginDto.Password);
     }
 
-    public async Task<bool> Register(RegisterDto RegisterDto)
+    public async Task<bool> Register(RegisterRequestDto RegisterDto)
     {
         var newUser = new UserEntity
         {
@@ -50,7 +50,7 @@ public class AuthService : IAuthService
         return result.Succeeded;
     }
 
-    public async Task<string> GenerateTokenStringAsync(LoginDto loginDto)
+    public async Task<string> GenerateTokenStringAsync(ReceiveLoginDto loginDto)
     {
         var user = await _userManager.FindByNameAsync(loginDto.Username);
         var claims = await GetAllValidClaims(user);

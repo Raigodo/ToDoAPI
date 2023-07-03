@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.Diagnostics.CodeAnalysis;
 
 namespace ToDoList.Domain.Entities;
 
@@ -8,10 +7,9 @@ public class GroupEntity
     [Key]
     public int Id { get; set; }
 
-    [NotNull]
-    public string Title { get; set; } = "New Group";
+    public string Name { get; set; } = "New Group";
+    public string ShortDescription { get; set; } = string.Empty;
 
-    [NotNull]
     public string Description { get; set; } = string.Empty;
 
 

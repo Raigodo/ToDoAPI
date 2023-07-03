@@ -1,7 +1,9 @@
 ﻿
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using ToDoList.Domain.Entities;
+using ToDoList.Domain.Roles;
 
 namespace ToDoList.DAL;
 
@@ -22,9 +24,6 @@ public class ApiDbContext : IdentityDbContext<UserEntity>
         groupUsers.HasOne(gu => gu.Group).WithMany(g => g.MembersInGroup);
 
 
-        modelBuilder.Entity<UserEntity>()
-            .Property(u => u.Id)
-            .ValueGeneratedOnAdd();
         modelBuilder.Entity<GroupEntity>()
             .Property(g => g.Id)
             .ValueGeneratedOnAdd();
@@ -34,6 +33,20 @@ public class ApiDbContext : IdentityDbContext<UserEntity>
         modelBuilder.Entity<TaskEntity>()
             .Property(t => t.Id)
             .ValueGeneratedOnAdd();
+
+
+        SeedRoles(modelBuilder);
+    }
+
+    private void SeedRoles(ModelBuilder builder)
+    {
+        builder.Entity<IdentityRole>().HasData
+            (
+                new IdentityRole { Name = ApiUserRoles.User, NormalizedName=ApiUserRoles.User.ToUpper()},
+                new IdentityRole { Name = ApiUserRoles.Admin, NormalizedName = ApiUserRoles.Admin.ToUpper() },
+                new IdentityRole { Name = GroupMemberRoles.Member, NormalizedName = GroupMemberRoles.Member.ToUpper() },
+                new IdentityRole { Name = GroupMemberRoles.Admin, NormalizedName = GroupMemberRoles.Admin.ToUpper() }
+            );
     }
 
     public DbSet<UserEntity> Users { get; set; }

@@ -1,9 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
-using ToDoList.Services.Check;
-using ToDoList.DAL.Interfaces;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using ToDoList.Application.Dto.Receive.Group;
+using ToDoList.Application.Dto.Receive.TaskBox;
+using ToDoList.Application.Interfaces;
 using ToDoList.Domain.Roles;
-using ToDoList.Domain.Dto;
 
 namespace ToDoList.API.Controllers;
 
@@ -13,21 +13,12 @@ namespace ToDoList.API.Controllers;
 [Route("api/[controller]")]
 public class TaskBoxesController : ControllerBase
 {
-    private IAcessGuardService _acessCheck;
-    private ICheckExistingRecordService _existCheck;
     private ITaskBoxRepository _taskBoxRepository;
-    private IGroupRepository _groupRepository;
 
     public TaskBoxesController(
-        IAcessGuardService acessCheck,
-        ICheckExistingRecordService existCheck,
-        ITaskBoxRepository taskBoxRepository,
-        IGroupRepository groupRepository)
+        ITaskBoxRepository taskBoxRepository)
     {
-        _acessCheck = acessCheck;
-        _existCheck = existCheck;
         _taskBoxRepository = taskBoxRepository;
-        _groupRepository = groupRepository;
     }
 
 
@@ -36,38 +27,25 @@ public class TaskBoxesController : ControllerBase
     [Route("GetAll")]
     public async Task<IActionResult> GetAll()
     {
-        return Ok(await _groupRepository.GetAllGroupsAsync());
+        var taskBoxes = await _taskBoxRepository.GetAllTaskBoxesAsync();
+        return Ok(taskBoxes);
     }
 
 
     [HttpGet]
-    [Route("GetGroupRootBoxes")]
-    public async Task<IActionResult> GetGroupRootBoxes(int groupId)
+    [Route("GetRoot")]
+    public async Task<IActionResult> GetRoot(ReceiveGroupIdDto groupId)
     {
-        var group = await _groupRepository.GetGroupByIdAsync(groupId);
-
-        if (group == null)
-            return BadRequest("Group not found");
-
-        if (!await _acessCheck.IsGroupAcessibleAsync(groupId))
-            return Unauthorized("Acess denied");
-
-        var rootBoxes = await _taskBoxRepository.GetGroupRootTaskBoxesAsync(group);
+        var rootBoxes = await _taskBoxRepository.GetRootTaskBoxesAsync(groupId);
 
         return Ok(rootBoxes);
     }
 
     [HttpGet]
     [Route("Get")]
-    public async Task<IActionResult> Get(int boxId)
+    public async Task<IActionResult> Get(ReceiveTaskBoxIdDto taskBoxId)
     {
-        var box = await _taskBoxRepository.GetTaskBoxByIdAsync(boxId);
-
-        if (box == null)
-            return BadRequest("Task box not found");
-
-        if (!(await _acessCheck.IsBoxAcessibleAsync(boxId)))
-            return Unauthorized("Acess denied");
+        var box = await _taskBoxRepository.GetTaskBoxByIdAsync(taskBoxId);
 
         return Ok(box);
     }
@@ -75,58 +53,28 @@ public class TaskBoxesController : ControllerBase
 
     [HttpPost]
     [Route("Create")]
-    public async Task<IActionResult> Create(TaskBoxDto entityDto)
+    public async Task<IActionResult> Create(ReceiveTaskBoxDto taskBoxDto)
     {
-        if (!await _existCheck.DoesGroupExistAsync(entityDto.AssociatedGroupId))
-            return BadRequest("Group not found");
-
-        if (entityDto.ParrentBoxId != null && !await _existCheck.DoesBoxExistAsync((int)entityDto.ParrentBoxId))
-            return BadRequest("Parrent task box not found");
-
-        if (!(await _acessCheck.IsGroupAcessibleAsync(entityDto.AssociatedGroupId, true)))
-            return Unauthorized("Acess denied");
-
-        var entity = await _taskBoxRepository.CreateTaskBoxAsync(entityDto);
+        var entity = await _taskBoxRepository.CreateTaskBoxAsync(taskBoxDto);
         return CreatedAtAction("Get", new { entity.Id }, entity);
     }
-    
+
 
     [HttpPatch]
     [Route("Update")]
-    public async Task<IActionResult> Update(int boxId, TaskBoxDto entityDto)
+    public async Task<IActionResult> Update(ReceiveUpdateTaskBoxDto taskBoxDto)
     {
-        var box = await _taskBoxRepository.GetTaskBoxByIdAsync(boxId);
+        await _taskBoxRepository.UpdateTaskBoxAsync(taskBoxDto);
 
-        if (box == null)
-            return BadRequest("Task box not found");
-
-        if (!await _existCheck.DoesGroupExistAsync(entityDto.AssociatedGroupId))
-            return BadRequest("Group not found");
-
-        if (entityDto.ParrentBoxId != null && await _existCheck.DoesBoxExistAsync((int)entityDto.ParrentBoxId))
-            return BadRequest("Parrent task box not found");
-
-        if (!(await _acessCheck.IsGroupAcessibleAsync(entityDto.AssociatedGroupId, true)))
-            return Unauthorized("Acess denied");
-
-        await _taskBoxRepository.UpdateTaskBoxAsync(box, entityDto);
         return NoContent();
     }
-    
+
 
     [HttpDelete]
     [Route("Delete")]
-    public async Task<IActionResult> Delete(int boxId)
+    public async Task<IActionResult> Delete(ReceiveTaskBoxIdDto taskBoxId)
     {
-        var box = await _taskBoxRepository.GetTaskBoxByIdAsync(boxId);
-
-        if (box == null)
-            return BadRequest("Task box not found");
-
-        if (await _acessCheck.IsGroupAcessibleAsync(boxId, true))
-            return Unauthorized("Acess denied");
-
-        await _taskBoxRepository.DeleteTaskBoxAsync(box);
+        await _taskBoxRepository.DeleteTaskBoxAsync(taskBoxId);
         return NoContent();
     }
 }
