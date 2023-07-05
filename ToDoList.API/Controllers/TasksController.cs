@@ -1,55 +1,50 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ToDoList.Application.Dto.Receive.Task;
-using ToDoList.Application.Interfaces;
+using ToDoList.Application.Exceptions;
+using ToDoList.Application.Services.Tasks;
 
 namespace ToDoList.API.Controllers;
 
 
 [ApiController]
-[Authorize]
+//[Authorize]
 [Route("api/[controller]")]
 public class TasksController : ControllerBase
 {
-    private ITaskRepository _taskRepository;
+    private TasksService _tasksService;
 
     public TasksController(
-        ITaskRepository taskRepository)
+        TasksService tasksService)
     {
-        _taskRepository = taskRepository;
+        _tasksService = tasksService;
     }
 
     [HttpGet]
-    [Route("Inspect")]
-    public async Task<IActionResult> Inspect(ReceiveTaskIdDto taskId)
+    [Route("Get/{taskId}")]
+    public async Task<IActionResult> Get(int taskId)
     {
-        var task = await _taskRepository.GetTaskByIdAsync(taskId);
-
-        return Ok(task);
+        return Ok();
     }
 
     [HttpPost]
     [Route("Create")]
     public async Task<IActionResult> Create(ReceiveTaskDto taskDto)
     {
-        var entity = await _taskRepository.CreateTaskAsync(taskDto);
-
-        return CreatedAtAction("ViewTask", new { entity.Id }, entity);
+        return Ok();
     }
 
     [HttpPatch]
     [Route("Update")]
     public async Task<IActionResult> Update(ReceiveUpdateTaskDto taskDto)
     {
-        await _taskRepository.UpdateTaskAsync(taskDto);
-        return NoContent();
+        return Ok();
     }
 
     [HttpDelete]
-    [Route("Delete")]
-    public async Task<IActionResult> Delete(ReceiveTaskIdDto taskId)
+    [Route("Delete/{taskId}")]
+    public async Task<IActionResult> Delete(int taskId)
     {
-        var result = _taskRepository.DeleteTaskAsync(taskId);
-        return NoContent();
+        return Ok();
     }
 }

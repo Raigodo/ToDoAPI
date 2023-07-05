@@ -1,8 +1,7 @@
 using Microsoft.AspNetCore.Identity;
-using ToDoList.API.Registaration;
+using ToDoList.API.Setups;
 using ToDoList.DAL;
 using ToDoList.Domain.Entities;
-using ToDoList.Services.Auth;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,7 +18,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.ConfigureSwagger();
 
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddTransient<IAuthService, AuthService>();
+builder.Services.AddServices();
 
 builder.Services.AddRepositories();
 
@@ -34,7 +33,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
-app.UseAuthorization();
+//app.UseAuthorization();
 
 app.MapControllers();
 

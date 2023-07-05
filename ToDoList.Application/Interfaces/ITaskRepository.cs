@@ -6,8 +6,8 @@ namespace ToDoList.Application.Interfaces;
 public interface ITaskRepository
 {
     Task<IEnumerable<TaskEntity>> GetAllTasksAsync();
-    Task<TaskEntity?> GetTaskByIdAsync(ReceiveTaskIdDto taskId);
-    Task<TaskEntity> CreateTaskAsync(ReceiveTaskDto taskDto);
-    Task UpdateTaskAsync(ReceiveUpdateTaskDto taskDto);
-    Task DeleteTaskAsync(ReceiveTaskIdDto taskId);
+    Task<TaskEntity> TryGetTaskByIdAsync(int taskId);
+    Task<TaskEntity> TryCreateTaskAsync(ReceiveTaskDto taskDto);
+    Task TryUpdateTaskAsync(ReceiveUpdateTaskDto taskDto);
+    Task TryDeleteTaskAsync(int taskId);
 }

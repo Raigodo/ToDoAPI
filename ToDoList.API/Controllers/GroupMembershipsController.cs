@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using ToDoList.Application.Dto.Receive.Group;
 using ToDoList.Application.Dto.Receive.Member;
-using ToDoList.Application.Interfaces;
+using ToDoList.Application.Services.Tasks;
 
 namespace ToDoList.API.Controllers;
 
@@ -9,49 +8,42 @@ namespace ToDoList.API.Controllers;
 [ApiController]
 //[Authorize]
 [Route("api/[controller]")]
-public class GroupMembershipController : ControllerBase
+public class GroupMembershipsController : ControllerBase
 {
-    private IGroupMembershipRepository _memberRepository;
+    private MembersService _memberService;
 
-    public GroupMembershipController(
-        IGroupMembershipRepository memberRepository)
+    public GroupMembershipsController(
+        MembersService memberService)
     {
-        _memberRepository = memberRepository;
+        _memberService = memberService;
     }
 
-
     [HttpGet]
-    [Route("GetMembers")]
-    public async Task<IActionResult> GetMembers(ReceiveGroupIdDto groupId)
+    [Route("GetMember")]
+    public async Task<IActionResult> GetMember(string userId, int groupId)
     {
-        var memberList = await _memberRepository.GetAllGroupMembersAsync(groupId);
-
-        return Ok(memberList);
+        return Ok();
     }
 
     [HttpPost]
     [Route("AddMember")]
     public async Task<IActionResult> AddMember(ReceiveMemberDto memberDto)
     {
-        var member = await _memberRepository.AddMemberAsync(memberDto);
-
-        return CreatedAtAction("GetMembers", new { member.GroupId }, member);
+        return Ok();
     }
 
     [HttpPatch]
     [Route("Update")]
     public async Task<IActionResult> Update(ReceiveMemberDto memberDto)
     {
-        await _memberRepository.UpdateMemberAsync(memberDto);
-        return NoContent();
+        return Ok();
     }
 
 
     [HttpDelete]
     [Route("Delete")]
-    public async Task<IActionResult> Delete(ReceiveMemberIdDto memberId)
+    public async Task<IActionResult> Delete(string userId, int groupId)
     {
-        await _memberRepository.RemoveGroupMemberAsync(memberId);
-        return NoContent();
+        return Ok();
     }
 }

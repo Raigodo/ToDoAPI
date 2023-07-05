@@ -1,24 +1,23 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using ToDoList.Application.Dto.Receive.User;
-using ToDoList.Application.Interfaces;
-using ToDoList.Domain.Roles;
+using ToDoList.Application.Exceptions;
+using ToDoList.Application.Services.Users;
 
 namespace ToDoList.API.Controllers;
 
 
 //NOTICE Users are created in AuthController
 [ApiController]
-[Authorize]
+//[Authorize]
 [Route("api/[controller]")]
 public class UsersController : ControllerBase
 {
-    private IUserRepository _userRepository;
+    private UsersService _userService;
 
     public UsersController(
-        IUserRepository userRepository)
+        UsersService userService)
     {
-        _userRepository = userRepository;
+        _userService = userService;
     }
 
 
@@ -27,35 +26,46 @@ public class UsersController : ControllerBase
     [Route("GetAll")]
     public async Task<IActionResult> GetAll()
     {
-        var users = await _userRepository.GetAllUsersAsync();
+        var users = await _userService.GetAllAsync();
         return Ok(users);
     }
 
 
     [HttpGet]
-    [Route("Inspect")]
-    public async Task<IActionResult> Inspect(ReceiveUserIdDto userId)
+    [Route("Get/{userId}")]
+    public async Task<IActionResult> Get(string userId)
     {
-        var user = await _userRepository.GetUserByIdAsync(userId);
-
-        return Ok(user);
+        return Ok();
     }
+
+    [HttpGet]
+    [Route("Inspect/{userId}")]
+    public async Task<IActionResult> Inspect(string userId)
+    {
+        return Ok();
+    }
+
+    [HttpGet]
+    [Route("Get/{userId}/MemberingGroups")]
+    public async Task<IActionResult> MemberingGroups(string userId)
+    {
+        return Ok();
+    }
+
 
 
     [HttpPatch]
     [Route("Update")]
     public async Task<IActionResult> Update(ReceiveUpdateUserDto userDto)
     {
-        await _userRepository.UpdateUserAsync(userDto);
-        return NoContent();
+        return Ok();
     }
 
 
     [HttpDelete]
-    [Route("Delete")]
-    public async Task<IActionResult> Delete(ReceiveUserIdDto userId)
+    [Route("Delete/{userId}")]
+    public async Task<IActionResult> Delete(string userId)
     {
-        await _userRepository.DeleteUserAsync(userId);
-        return NoContent();
+        return Ok();
     }
 }

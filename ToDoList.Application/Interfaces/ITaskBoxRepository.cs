@@ -1,5 +1,4 @@
-﻿using ToDoList.Application.Dto.Receive.Group;
-using ToDoList.Application.Dto.Receive.TaskBox;
+﻿using ToDoList.Application.Dto.Receive.TaskBox;
 using ToDoList.Domain.Entities;
 
 namespace ToDoList.Application.Interfaces;
@@ -7,9 +6,9 @@ namespace ToDoList.Application.Interfaces;
 public interface ITaskBoxRepository
 {
     Task<IEnumerable<TaskBoxEntity>> GetAllTaskBoxesAsync();
-    Task<IEnumerable<TaskBoxEntity>> GetRootTaskBoxesAsync(ReceiveGroupIdDto groupId);
-    Task<TaskBoxEntity?> GetTaskBoxByIdAsync(ReceiveTaskBoxIdDto taskBoxId);
-    Task<TaskBoxEntity> CreateTaskBoxAsync(ReceiveTaskBoxDto taskBoxDto);
-    Task UpdateTaskBoxAsync(ReceiveUpdateTaskBoxDto taskBoxDto);
-    Task DeleteTaskBoxAsync(ReceiveTaskBoxIdDto taskBoxId);
+    Task<IEnumerable<TaskBoxEntity>> TryGetRootTaskBoxesAsync(int groupId);
+    Task<TaskBoxEntity> TryGetTaskBoxByIdAsync(int taskBoxId);
+    Task<TaskBoxEntity> TryCreateTaskBoxAsync(ReceiveTaskBoxDto taskBoxDto);
+    Task TryUpdateTaskBoxAsync(ReceiveUpdateTaskBoxDto taskBoxDto);
+    Task TryDeleteTaskBoxAsync(int taskBoxId);
 }

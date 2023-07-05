@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using ToDoList.Application.Dto.Receive.Group;
 using ToDoList.Application.Dto.Receive.Member;
 using ToDoList.Application.Interfaces;
 using ToDoList.Domain.Entities;
@@ -17,7 +16,7 @@ public class GroupMembershipsRepository : IGroupMembershipRepository
     }
 
 
-    public async Task<GroupsUsersEntity> AddMemberAsync(ReceiveMemberDto memberDto)
+    public async Task<GroupsUsersEntity> TryAddMemberAsync(ReceiveMemberDto memberDto)
     {
         var member = new GroupsUsersEntity()
         {
@@ -30,34 +29,39 @@ public class GroupMembershipsRepository : IGroupMembershipRepository
         return member;
     }
 
-    public async Task<IEnumerable<GroupsUsersEntity>> GetAllGroupMembersAsync(ReceiveGroupIdDto groupId)
+    public async Task<IEnumerable<GroupsUsersEntity>> TryGetAllGroupMembersAsync(int groupId)
     {
         return await _dbCtx.ApiGroupsUsers
-            .Where(gu => gu.GroupId == groupId.Id)
+            .Where(gu => gu.GroupId == groupId)
             .ToListAsync();
     }
 
-    public async Task<GroupsUsersEntity?> GetMemberAsync(ReceiveMemberIdDto memberId)
+    public Task<IEnumerable<GroupEntity>> TryGetAllGroupsAsync(string userId)
+    {
+        throw new NotImplementedException();
+    }
+
+    public async Task<GroupsUsersEntity> TryGetMemberByIdAsync(string userId, int groupId)
     {
         return await _dbCtx.ApiGroupsUsers
-            .Where(gu => gu.GroupId == memberId.GroupId &&
-                gu.UserId == memberId.UserId)
+            .Where(gu => gu.GroupId == groupId &&
+                gu.UserId == userId)
             .FirstOrDefaultAsync();
     }
 
-    public async Task RemoveGroupMemberAsync(ReceiveMemberIdDto memberId)
+    public async Task TryRemoveGroupMemberAsync(string userId, int groupId)
     {
         var member = await _dbCtx.ApiGroupsUsers
             .Where(m =>
-                m.UserId == memberId.UserId &&
-                m.GroupId == memberId.GroupId)
+                m.UserId == userId &&
+                m.GroupId == groupId)
             .FirstOrDefaultAsync();
 
         _dbCtx.ApiGroupsUsers.Remove(member);
         await _dbCtx.SaveChangesAsync();
     }
 
-    public async Task UpdateMemberAsync(ReceiveMemberDto memberDto)
+    public async Task TryUpdateMemberAsync(ReceiveMemberDto memberDto)
     {
         var member = await _dbCtx.ApiGroupsUsers
             .Where(m =>

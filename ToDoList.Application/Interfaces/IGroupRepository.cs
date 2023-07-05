@@ -1,5 +1,4 @@
 ﻿using ToDoList.Application.Dto.Receive.Group;
-using ToDoList.Application.Dto.Receive.User;
 using ToDoList.Domain.Entities;
 
 namespace ToDoList.Application.Interfaces;
@@ -7,9 +6,8 @@ namespace ToDoList.Application.Interfaces;
 public interface IGroupRepository
 {
     Task<IEnumerable<GroupEntity>> GetAllGroupsAsync();
-    Task<IEnumerable<GroupEntity>> GetAllGroupsAsync(ReceiveUserIdDto userId);
-    Task<GroupEntity?> GetGroupByIdAsync(ReceiveGroupIdDto groupId);
-    Task<GroupEntity> CreateGroupAsync(ReceiveGroupDto groupDto);
-    Task UpdateGroupAsync(ReceiveUpdateGroupDto groupDto);
-    Task DeleteGroupAsync(ReceiveGroupIdDto groupId);
+    Task<GroupEntity> TryGetGroupByIdAsync(int groupId);
+    Task<GroupEntity> TryCreateGroupAsync(ReceiveGroupDto groupDto);
+    Task TryUpdateGroupAsync(ReceiveUpdateGroupDto groupDto);
+    Task TryDeleteGroupAsync(int groupId);
 }

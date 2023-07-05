@@ -1,12 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using ToDoList.DAL;
 
-namespace ToDoList.API.Registaration;
+namespace ToDoList.API.Setups;
 
-public static class TokenAuthRegistrator
+public static class TokenConfig
 {
     public static WebApplicationBuilder ConfigureJwtBearer(this WebApplicationBuilder builder)
     {

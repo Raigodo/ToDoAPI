@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using ToDoList.Application.Dto.Receive.Group;
-using ToDoList.Application.Dto.Receive.User;
 using ToDoList.Application.Interfaces;
 using ToDoList.Domain.Entities;
 using ToDoList.Domain.Roles;
@@ -28,30 +27,24 @@ public class GroupRepository : IGroupRepository
     public async Task<IEnumerable<GroupEntity>> GetAllGroupsAsync()
     {
         return await _dbCtx.ApiGroups
-            .Include(g => g.AcessibleBoxes)
-            .Include(g => g.MembersInGroup)
             .ToListAsync();
     }
 
-    public async Task<IEnumerable<GroupEntity>> GetAllGroupsAsync(ReceiveUserIdDto userId)
+    public async Task<IEnumerable<GroupEntity>> TryGetAllGroupsAsync(string userId)
     {
         return await _dbCtx.ApiGroups
-            .Include(g => g.MembersInGroup)
-            .Include(g => g.AcessibleBoxes)
             .Where(g => g.MembersInGroup
-                .Any(gu => gu.UserId == userId.Id))
+                .Any(gu => gu.UserId == userId))
             .ToListAsync();
     }
 
-    public async Task<GroupEntity?> GetGroupByIdAsync(ReceiveGroupIdDto groupId)
+    public async Task<GroupEntity> TryGetGroupByIdAsync(int groupId)
     {
         return await _dbCtx.ApiGroups
-            .Include(g => g.MembersInGroup)
-            .Include(g => g.AcessibleBoxes)
-            .FirstOrDefaultAsync(g => g.Id == groupId.Id);
+            .FirstOrDefaultAsync(g => g.Id == groupId);
     }
 
-    public async Task<GroupEntity> CreateGroupAsync(ReceiveGroupDto groupDto)
+    public async Task<GroupEntity> TryCreateGroupAsync(ReceiveGroupDto groupDto)
     {
         var group = new GroupEntity()
         {
@@ -72,22 +65,18 @@ public class GroupRepository : IGroupRepository
         return group;
     }
 
-    public async Task UpdateGroupAsync(ReceiveUpdateGroupDto groupDto)
+    public async Task TryUpdateGroupAsync(ReceiveUpdateGroupDto groupDto)
     {
-        var groupId = new ReceiveGroupIdDto
-        {
-            Id = groupDto.Id
-        };
-        var group = await GetGroupByIdAsync(groupId);
+        var group = await TryGetGroupByIdAsync(groupDto.Id);
         group.Name = groupDto.Name;
         group.Description = groupDto.Description;
 
         await _dbCtx.SaveChangesAsync();
     }
 
-    public async Task DeleteGroupAsync(ReceiveGroupIdDto groupId)
+    public async Task TryDeleteGroupAsync(int groupId)
     {
-        var group = await GetGroupByIdAsync(groupId);
+        var group = await TryGetGroupByIdAsync(groupId);
         _dbCtx.ApiGroups.Remove(group);
         await _dbCtx.SaveChangesAsync();
     }

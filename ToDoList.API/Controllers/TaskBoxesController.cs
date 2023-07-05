@@ -1,53 +1,29 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using ToDoList.Application.Dto.Receive.Group;
 using ToDoList.Application.Dto.Receive.TaskBox;
-using ToDoList.Application.Interfaces;
-using ToDoList.Domain.Roles;
+using ToDoList.Application.Services.Tasks;
 
 namespace ToDoList.API.Controllers;
 
 
 [ApiController]
-[Authorize]
+//[Authorize]
 [Route("api/[controller]")]
 public class TaskBoxesController : ControllerBase
 {
-    private ITaskBoxRepository _taskBoxRepository;
+    private TaskBoxesService _taskBoxService;
 
     public TaskBoxesController(
-        ITaskBoxRepository taskBoxRepository)
+        TaskBoxesService taskBoxService)
     {
-        _taskBoxRepository = taskBoxRepository;
-    }
-
-
-    [HttpGet]
-    [Authorize(ApiUserRoles.Admin)]
-    [Route("GetAll")]
-    public async Task<IActionResult> GetAll()
-    {
-        var taskBoxes = await _taskBoxRepository.GetAllTaskBoxesAsync();
-        return Ok(taskBoxes);
-    }
-
-
-    [HttpGet]
-    [Route("GetRoot")]
-    public async Task<IActionResult> GetRoot(ReceiveGroupIdDto groupId)
-    {
-        var rootBoxes = await _taskBoxRepository.GetRootTaskBoxesAsync(groupId);
-
-        return Ok(rootBoxes);
+        _taskBoxService = taskBoxService;
     }
 
     [HttpGet]
-    [Route("Get")]
-    public async Task<IActionResult> Get(ReceiveTaskBoxIdDto taskBoxId)
+    [Route("Get/{taskBoxId}")]
+    public async Task<IActionResult> Get(int taskBoxId)
     {
-        var box = await _taskBoxRepository.GetTaskBoxByIdAsync(taskBoxId);
-
-        return Ok(box);
+        return Ok();
     }
 
 
@@ -55,8 +31,7 @@ public class TaskBoxesController : ControllerBase
     [Route("Create")]
     public async Task<IActionResult> Create(ReceiveTaskBoxDto taskBoxDto)
     {
-        var entity = await _taskBoxRepository.CreateTaskBoxAsync(taskBoxDto);
-        return CreatedAtAction("Get", new { entity.Id }, entity);
+        return Ok();
     }
 
 
@@ -64,17 +39,14 @@ public class TaskBoxesController : ControllerBase
     [Route("Update")]
     public async Task<IActionResult> Update(ReceiveUpdateTaskBoxDto taskBoxDto)
     {
-        await _taskBoxRepository.UpdateTaskBoxAsync(taskBoxDto);
-
-        return NoContent();
+        return Ok();
     }
 
 
     [HttpDelete]
-    [Route("Delete")]
-    public async Task<IActionResult> Delete(ReceiveTaskBoxIdDto taskBoxId)
+    [Route("Delete/{taskBoxId}")]
+    public async Task<IActionResult> Delete(int taskBoxId)
     {
-        await _taskBoxRepository.DeleteTaskBoxAsync(taskBoxId);
-        return NoContent();
+        return Ok();
     }
 }

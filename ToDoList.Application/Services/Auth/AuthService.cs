@@ -82,26 +82,22 @@ public class AuthService : IAuthService
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
 
-        var userClaims = await _userManager.GetClaimsAsync(user);
-        claims.AddRange(userClaims);
+        //var userClaims = await _userManager.GetClaimsAsync(user);
+        //claims.AddRange(userClaims);
 
 
-        //add all claims attached to role
-        var userRoles = await _userManager.GetRolesAsync(user);
-        foreach (var userRole in userRoles)
-        {
-            var role = await _roleManager.FindByNameAsync(userRole);
-            if (role != null)
-            {
-                claims.Add(new Claim(ClaimTypes.Role, userRole));
+        ////add all claims attached to role
+        //var userRoles = await _userManager.GetRolesAsync(user);
+        //foreach (var userRole in userRoles)
+        //{
+        //    var role = await _roleManager.FindByNameAsync(userRole);
+        //    if (role == null) continue;
 
-                var roleClaims = await _roleManager.GetClaimsAsync(role);
-                foreach (var roleClaim in roleClaims)
-                {
-                    claims.Add(roleClaim);
-                }
-            }
-        }
+        //    claims.Add(new Claim(ClaimTypes.Role, userRole));
+
+        //    var roleClaims = await _roleManager.GetClaimsAsync(role);
+        //    foreach (var roleClaim in roleClaims) claims.Add(roleClaim);
+        //}
 
         return claims;
     }

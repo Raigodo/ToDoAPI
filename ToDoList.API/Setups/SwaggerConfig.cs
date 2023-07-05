@@ -1,9 +1,9 @@
 ﻿using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
 
-namespace ToDoList.API.Registaration;
+namespace ToDoList.API.Setups;
 
-public static class SwaggerRegistator
+public static class SwaggerConfig
 {
     public static WebApplicationBuilder ConfigureSwagger(this WebApplicationBuilder builder)
     {

@@ -42,7 +42,7 @@ public class ApiDbContext : IdentityDbContext<UserEntity>
     {
         builder.Entity<IdentityRole>().HasData
             (
-                new IdentityRole { Name = ApiUserRoles.User, NormalizedName=ApiUserRoles.User.ToUpper()},
+                new IdentityRole { Name = ApiUserRoles.User, NormalizedName = ApiUserRoles.User.ToUpper() },
                 new IdentityRole { Name = ApiUserRoles.Admin, NormalizedName = ApiUserRoles.Admin.ToUpper() },
                 new IdentityRole { Name = GroupMemberRoles.Member, NormalizedName = GroupMemberRoles.Member.ToUpper() },
                 new IdentityRole { Name = GroupMemberRoles.Admin, NormalizedName = GroupMemberRoles.Admin.ToUpper() }

@@ -1,7 +1,7 @@
 ﻿using ToDoList.Application.Interfaces;
 using ToDoList.DAL.Repositories;
 
-namespace ToDoList.API.Registaration;
+namespace ToDoList.API.Setups;
 
 public static class RepositoryRegistrator
 {

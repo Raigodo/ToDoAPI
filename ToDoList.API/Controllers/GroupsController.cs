@@ -1,31 +1,43 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ToDoList.Application.Dto.Receive.Group;
-using ToDoList.Application.Interfaces;
+using ToDoList.Application.Services.Tasks;
 
 namespace ToDoList.API.Controllers;
 
 
 [ApiController]
-[Authorize]
+//[Authorize]
 [Route("api/[controller]")]
 public class GroupsController : ControllerBase
 {
-    private IGroupRepository _groupRepository;
+    private GroupsService _groupsService;
 
     public GroupsController(
-        IGroupRepository groupRepository)
+        GroupsService groupService)
     {
-        _groupRepository = groupRepository;
+        _groupsService = groupService;
     }
 
 
     [HttpGet]
-    [Route("Get")]
-    public async Task<IActionResult> Get(ReceiveGroupIdDto groupId)
+    [Route("Get/{groupId}")]
+    public async Task<IActionResult> Get(int groupId)
     {
-        var group = await _groupRepository.GetGroupByIdAsync(groupId);
-        return Ok(group);
+        return Ok();
+    }
+
+    [HttpGet]
+    [Route("Get/{groupId}/ContentRoot")]
+    public async Task<IActionResult> ContentRoot(int groupId)
+    {
+        return Ok();
+    }
+    [HttpGet]
+    [Route("Get/{groupId}/Members")]
+    public async Task<IActionResult> Members(int groupId)
+    {
+        return Ok();
     }
 
 
@@ -33,8 +45,7 @@ public class GroupsController : ControllerBase
     [Route("Create")]
     public async Task<IActionResult> Create(ReceiveGroupDto groupDto)
     {
-        var group = await _groupRepository.CreateGroupAsync(groupDto);
-        return CreatedAtAction("Get", new { group.Id }, group);
+        return Ok();
     }
 
 
@@ -42,16 +53,14 @@ public class GroupsController : ControllerBase
     [Route("Update")]
     public async Task<IActionResult> Update(ReceiveUpdateGroupDto groupDto)
     {
-        await _groupRepository.UpdateGroupAsync(groupDto);
-        return NoContent();
+        return Ok();
     }
 
 
     [HttpDelete]
-    [Route("Delete")]
-    public async Task<IActionResult> Delete(ReceiveGroupIdDto groupId)
+    [Route("Delete/{groupId}")]
+    public async Task<IActionResult> Delete(int groupId)
     {
-        await _groupRepository.DeleteGroupAsync(groupId);
-        return NoContent();
+        return Ok();
     }
 }

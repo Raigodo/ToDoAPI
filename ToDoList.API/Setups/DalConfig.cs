@@ -1,10 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System.Reflection;
 using ToDoList.DAL;
 
-namespace ToDoList.API.Registaration;
+namespace ToDoList.API.Setups;
 
-public static class DalRegistrator
+public static class DalConfig
 {
     public static WebApplicationBuilder ConfigureDataAcess(
         this WebApplicationBuilder builder)

@@ -15,7 +15,7 @@ public class TaskRepository : ITaskRepository
         _dbCtx = appDbContext;
     }
 
-    public async Task<TaskEntity> CreateTaskAsync(ReceiveTaskDto taskDto)
+    public async Task<TaskEntity> TryCreateTaskAsync(ReceiveTaskDto taskDto)
     {
         var task = new TaskEntity()
         {
@@ -29,9 +29,9 @@ public class TaskRepository : ITaskRepository
         return task;
     }
 
-    public async Task DeleteTaskAsync(ReceiveTaskIdDto taskId)
+    public async Task TryDeleteTaskAsync(int taskId)
     {
-        var task = await GetTaskByIdAsync(taskId);
+        var task = await TryGetTaskByIdAsync(taskId);
         _dbCtx.ApiTasks.Remove(task);
         await _dbCtx.SaveChangesAsync();
     }
@@ -41,19 +41,15 @@ public class TaskRepository : ITaskRepository
         return await _dbCtx.ApiTasks.ToListAsync();
     }
 
-    public async Task<TaskEntity?> GetTaskByIdAsync(ReceiveTaskIdDto taskId)
+    public async Task<TaskEntity?> TryGetTaskByIdAsync(int taskId)
     {
         return await _dbCtx.ApiTasks
-            .FirstOrDefaultAsync(t => t.Id == taskId.Id);
+            .FirstOrDefaultAsync(t => t.Id == taskId);
     }
 
-    public async Task UpdateTaskAsync(ReceiveUpdateTaskDto taskDto)
+    public async Task TryUpdateTaskAsync(ReceiveUpdateTaskDto taskDto)
     {
-        var taskId = new ReceiveTaskIdDto
-        {
-            Id = taskDto.Id
-        };
-        var task = await GetTaskByIdAsync(taskId);
+        var task = await TryGetTaskByIdAsync(taskDto.Id);
         task.ParrentBoxId = taskDto.ParrentBoxId;
         task.Title = taskDto.Title;
         task.Description = taskDto.Description;
